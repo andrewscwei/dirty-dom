@@ -11,7 +11,7 @@ import requestAnimationFrame from '../utils/requestAnimationFrame';
  */
 const DEFAULT_REFRESH_RATE = 0.0;
 
-const DEFAULT_DIRTY_INFO = {
+const DEFAULT_DIRTY_INFO: DirtyInfo = {
   [DirtyType.INPUT]: {
     mouseX: NaN,
     mouseY: NaN,
@@ -29,7 +29,17 @@ const DEFAULT_DIRTY_INFO = {
 };
 
 interface Delegator {
-  update: (dirtyInfo: typeof DEFAULT_DIRTY_INFO) => void;
+  update: (status: DirtyStatus) => void;
+}
+
+interface DirtyInfo {
+  [dirtyType: number]: {
+    [key: string]: any;
+  };
+}
+
+interface DirtyStatus {
+  [dirtyType: number]: boolean | { [key: string]: any };
 }
 
 interface ResponsiveDescriptor {
@@ -53,12 +63,6 @@ interface ResponsiveDescriptor {
  * Delegate for managing update calls of an object.
  */
 class UpdateDelegate {
-  private conductorTable: { [key: string]: Window | HTMLElement } = {};
-
-  private dirtyTable: number = 0;
-
-  private dirtyInfo = DEFAULT_DIRTY_INFO;
-
   /**
    * Delegator of this instance.
    */
@@ -83,6 +87,14 @@ class UpdateDelegate {
   private enterFrameHandler?: number;
 
   private pendingAnimationFrame?: number;
+
+  private conductorTable: { [key: string]: Window | HTMLElement } = {};
+
+  private dirtyTable: number = 0;
+
+  private dirtyInfo = DEFAULT_DIRTY_INFO;
+
+  private defaultDirtyInfo: { [dirtyType: number]: { [key: string]: any } } = DEFAULT_DIRTY_INFO;
 
   /**
    * Creates a new ElementUpdateDelegate instance.
@@ -171,8 +183,65 @@ class UpdateDelegate {
     this.keyDownHandler = undefined;
     this.keyPressHandler = undefined;
     this.keyUpHandler = undefined;
-    this.conductorTable = {};
     this.enterFrameHandler = undefined;
+    this.conductorTable = {};
+  }
+
+  /**
+   * Checks dirty status of a given dirty type.
+   *
+   * @param dirtyType - Dirty type.
+   *
+   * @return `true` if dirty, `false` otherwise.
+   */
+  isDirty(dirtyType: DirtyType): boolean {
+    switch (dirtyType) {
+    case DirtyType.NONE:
+    case DirtyType.ALL:
+      return (this.dirtyTable === dirtyType);
+    default:
+      return ((dirtyType & this.dirtyTable) !== 0);
+    }
+  }
+
+  /**
+   * Sets a dirty type as dirty, consequently invoking an update on the next
+   * animation frame.
+   *
+   * @param dirtyType - The dirty type to set.
+   * @param validateNow - Determines if the update should be validated right
+   *                      away instead of on the next animation frame.
+   */
+  setDirty(dirtyType: DirtyType, validateNow: boolean = false) {
+    if (this.isDirty(dirtyType) && !validateNow) return;
+
+    switch (dirtyType) {
+    case DirtyType.NONE:
+    case DirtyType.ALL:
+      this.dirtyTable = dirtyType;
+      break;
+    default:
+      this.dirtyTable |= dirtyType;
+    }
+
+    if ((dirtyType !== DirtyType.NONE) && (dirtyType !== DirtyType.ALL) && !this.defaultDirtyInfo[dirtyType]) {
+      this.defaultDirtyInfo[dirtyType] = {};
+    }
+
+    if (this.dirtyTable === DirtyType.NONE) {
+      this.dirtyInfo = this.defaultDirtyInfo;
+      return;
+    }
+
+    if (validateNow) {
+      this.update();
+    }
+    else if (!this.pendingAnimationFrame) {
+      this.pendingAnimationFrame = requestAnimationFrame(this.update.bind(this));
+    }
+    else if (this.pendingAnimationFrame) {
+      window.setTimeout(() => this.setDirty(dirtyType, validateNow), 0.0);
+    }
   }
 
   /**
@@ -268,66 +337,21 @@ class UpdateDelegate {
     }
 
     if (this.delegator) {
-      this.delegator.update.call(this.delegator, this.dirtyInfo);
+      const status: DirtyStatus = {};
+
+      for (const dirtyType in this.dirtyInfo) {
+        if (!this.dirtyInfo.hasOwnProperty(dirtyType)) continue;
+        const t = Number(dirtyType);
+        status[t] = this.isDirty(t) ? (this.dirtyInfo[t] || true) : false;
+      }
+
+      this.delegator.update.call(this.delegator, status);
     }
 
     // Reset the dirty status of all types.
     this.setDirty(DirtyType.NONE);
 
     this.pendingAnimationFrame = undefined;
-  }
-
-  /**
-   * Sets a dirty type as dirty, consequently invoking an update on the next
-   * animation frame.
-   *
-   * @param dirtyType - The dirty type to set.
-   * @param validateNow - Determines if the update should be validated right
-   *                      away instead of on the next animation frame.
-   */
-  private setDirty(dirtyType: DirtyType, validateNow: boolean = false) {
-    if (this.isDirty(dirtyType) && !validateNow) return;
-
-    switch (dirtyType) {
-    case DirtyType.NONE:
-    case DirtyType.ALL:
-      this.dirtyTable = dirtyType;
-      break;
-    default:
-      this.dirtyTable |= dirtyType;
-    }
-
-    if (this.dirtyTable === DirtyType.NONE) {
-      this.dirtyInfo = DEFAULT_DIRTY_INFO;
-      return;
-    }
-
-    if (validateNow) {
-      this.update();
-    }
-    else if (!this.pendingAnimationFrame) {
-      this.pendingAnimationFrame = requestAnimationFrame(this.update.bind(this));
-    }
-    else if (this.pendingAnimationFrame) {
-      window.setTimeout(() => this.setDirty(dirtyType, validateNow), 0.0);
-    }
-  }
-
-  /**
-   * Checks dirty status of a given dirty type.
-   *
-   * @param dirtyType - Dirty type.
-   *
-   * @return `true` if dirty, `false` otherwise.
-   */
-  private isDirty(dirtyType: DirtyType): boolean {
-    switch (dirtyType) {
-    case DirtyType.NONE:
-    case DirtyType.ALL:
-      return (this.dirtyTable === dirtyType);
-    default:
-      return ((dirtyType & this.dirtyTable) !== 0);
-    }
   }
 
   /**

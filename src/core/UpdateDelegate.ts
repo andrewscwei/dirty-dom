@@ -12,6 +12,14 @@ import requestAnimationFrame from '../utils/requestAnimationFrame';
 const DEFAULT_REFRESH_RATE = 0.0;
 
 const DEFAULT_DIRTY_INFO: DirtyInfo = {
+  [DirtyType.POSITION]: {},
+  [DirtyType.SIZE]: {},
+  [DirtyType.LAYOUT]: {},
+  [DirtyType.STATE]: {},
+  [DirtyType.DATA]: {},
+  [DirtyType.LOCALE]: {},
+  [DirtyType.CONFIG]: {},
+  [DirtyType.STYLE]: {},
   [DirtyType.INPUT]: {
     mouseX: NaN,
     mouseY: NaN,
@@ -26,6 +34,7 @@ const DEFAULT_DIRTY_INFO: DirtyInfo = {
     y: NaN,
     z: NaN,
   },
+  [DirtyType.FRAME]: {},
 };
 
 interface Delegator {

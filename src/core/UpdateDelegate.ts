@@ -2,6 +2,7 @@
 
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
+import { DirtyInfo, DirtyStatus, UpdateDelegator } from '../types';
 import cancelAnimationFrame from '../utils/cancelAnimationFrame';
 import debounce from '../utils/debounce';
 import requestAnimationFrame from '../utils/requestAnimationFrame';
@@ -37,20 +38,6 @@ const DEFAULT_DIRTY_INFO: DirtyInfo = {
   [DirtyType.FRAME]: {},
 };
 
-interface Delegator {
-  update: (status: DirtyStatus) => void;
-}
-
-interface DirtyInfo {
-  [dirtyType: number]: {
-    [key: string]: any;
-  };
-}
-
-interface DirtyStatus {
-  [dirtyType: number]: boolean | { [key: string]: any };
-}
-
 interface ResponsiveDescriptor {
   /**
    * The DOM element or window to listen for events.
@@ -75,7 +62,7 @@ class UpdateDelegate {
   /**
    * Delegator of this instance.
    */
-  private delegator: Delegator;
+  private delegator: UpdateDelegator;
 
   private resizeHandler?: EventListener;
 
@@ -111,7 +98,7 @@ class UpdateDelegate {
    * @param delegator - The object to create this update delegate for.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(delegator: Delegator, descriptors?: { [key: string]: number | true | ResponsiveDescriptor }) {
+  constructor(delegator: UpdateDelegator, descriptors?: { [key: string]: number | true | ResponsiveDescriptor }) {
     this.delegator = delegator;
 
     if (descriptors) {

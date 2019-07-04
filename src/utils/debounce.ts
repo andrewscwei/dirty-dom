@@ -14,7 +14,7 @@
 export default function debounce(method: (...args: any[]) => void, delay: number = 0, leading: boolean = false): () => void {
   let timeout: number | undefined;
 
-  return () => {
+  return function debounced() {
     const args = arguments;
 
     const later = () => {

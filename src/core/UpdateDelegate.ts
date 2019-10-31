@@ -60,6 +60,18 @@ interface ResponsiveDescriptor {
  */
 class UpdateDelegate {
   /**
+   * Factory method.
+   *
+   * @param delegator - The object to create this update delegate for.
+   * @param descriptors - Map of responsive descriptors.
+   *
+   * @returns A new UpdateDelegate instance.
+   */
+  static from(delegator: UpdateDelegator, descriptors?: { [key: string]: number | true | ResponsiveDescriptor }) {
+    return new UpdateDelegate(delegator, descriptors);
+  }
+
+  /**
    * Delegator of this instance.
    */
   private delegator: UpdateDelegator;

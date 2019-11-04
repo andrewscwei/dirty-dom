@@ -20,20 +20,20 @@ enum EventType {
   ORIENTATION_CHANGE = 'orientationchange',
 
   /**
-   * Event triggered when an element is scrolled. Supports custom conductor,
-   * defaults to the window.
+   * Event triggered when an element is scrolled. Supports custom target
+   * element, defaults to the window.
    */
   SCROLL = 'scroll',
 
   /**
    * Event triggered whenever an element detects a mouse wheel action. Supports
-   * custom conductor, defaults to the window.
+   * custom target element, defaults to the window.
    */
   MOUSE_WHEEL = 'wheel',
 
   /**
    * Event triggered whenever an element detects a mouse move action. Supports
-   * custom conductor, defaults to the window.
+   * custom target element, defaults to the window.
    */
   MOUSE_MOVE = 'mousemove',
 

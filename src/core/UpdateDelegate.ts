@@ -79,9 +79,9 @@ export default class UpdateDelegate {
   /**
    * Cache.
    */
-  private conductorTable: { [key: string]: Window | HTMLElement } = {};
+  private eventTargetTable: { [key: string]: Window | HTMLElement } = {};
   private dirtyTable: number = 0;
-  private responsiveDescriptors?: { [key in EventType]?: number | true | { conductor?: Window | HTMLElement, refreshRate?: number } };
+  private responsiveDescriptors?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
 
   /**
    * Creates a new ElementUpdateDelegate instance.
@@ -89,7 +89,7 @@ export default class UpdateDelegate {
    * @param delegator - The object to create this update delegate for.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(delegator: UpdateDelegator, descriptors?: { [key in EventType]?: number | true | { conductor?: Window | HTMLElement, refreshRate?: number } }) {
+  constructor(delegator: UpdateDelegator, descriptors?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } }) {
     this.delegator = delegator;
     this.responsiveDescriptors = descriptors;
   }
@@ -114,7 +114,7 @@ export default class UpdateDelegate {
         }
         else if (typeof value === 'object') {
           this.initResponsiveness({
-            conductor: value.conductor,
+            target: value.target,
             refreshRate: value.refreshRate,
             eventTypes: [key],
           });
@@ -144,18 +144,18 @@ export default class UpdateDelegate {
     }
 
     if (this.scrollHandler) {
-      const conductor = this.conductorTable.scroll || window;
-      conductor.removeEventListener('scroll', this.scrollHandler);
+      const target = this.eventTargetTable.scroll || window;
+      target.removeEventListener('scroll', this.scrollHandler);
     }
 
     if (this.mouseWheelHandler) {
-      const conductor = this.conductorTable.mouseWheel || window;
-      conductor.removeEventListener('wheel', this.mouseWheelHandler);
+      const target = this.eventTargetTable.mouseWheel || window;
+      target.removeEventListener('wheel', this.mouseWheelHandler);
     }
 
     if (this.mouseMoveHandler) {
-      const conductor = this.conductorTable.mouseMove || window;
-      conductor.removeEventListener('mousemove', this.mouseMoveHandler);
+      const target = this.eventTargetTable.mouseMove || window;
+      target.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
     if (this.orientationChangeHandler) {
@@ -179,7 +179,7 @@ export default class UpdateDelegate {
     this.keyPressHandler = undefined;
     this.keyUpHandler = undefined;
     this.enterFrameHandler = undefined;
-    this.conductorTable = {};
+    this.eventTargetTable = {};
   }
 
   /**
@@ -222,7 +222,7 @@ export default class UpdateDelegate {
         ...this.dirtyInfo,
       };
 
-      this.updatePositionInfo(this.conductorTable.scroll);
+      this.updatePositionInfo(this.eventTargetTable.scroll);
       this.updateSizeInfo();
 
       break;
@@ -280,16 +280,16 @@ export default class UpdateDelegate {
   }
 
   /**
-   * Sets up the responsiveness to the provided conductor. Only the following
-   * event types support a custom conductor, the rest use window as the
-   * conductor:
+   * Sets up the responsiveness to the provided target. Only the following
+   * event types support a custom target, the rest use window as the
+   * target:
    *   1. 'scroll'
    *   2. 'wheel'
    *   3. 'mousemove'
    *
    * @param params - @see ResponsiveDescriptor
    */
-  private initResponsiveness({ conductor = window, refreshRate = (this.constructor as any).DEFAULT_REFRESH_RATE, eventTypes = [] }: ResponsiveDescriptor = {}) {
+  private initResponsiveness({ target = window, refreshRate = (this.constructor as any).DEFAULT_REFRESH_RATE, eventTypes = [] }: ResponsiveDescriptor = {}) {
     const isUniversal = eventTypes.length === 0;
 
     if (isUniversal || eventTypes.indexOf(EventType.RESIZE) > -1 || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
@@ -305,24 +305,24 @@ export default class UpdateDelegate {
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.SCROLL) > -1) {
-      if (this.scrollHandler) (this.conductorTable.scroll || window).removeEventListener('scroll', this.scrollHandler);
+      if (this.scrollHandler) (this.eventTargetTable.scroll || window).removeEventListener('scroll', this.scrollHandler);
       this.scrollHandler = (refreshRate === 0.0) ? this.onScroll.bind(this) : debounce(this.onScroll.bind(this), refreshRate);
-      this.conductorTable.scroll = conductor;
-      conductor.addEventListener('scroll', this.scrollHandler);
+      this.eventTargetTable.scroll = target;
+      target.addEventListener('scroll', this.scrollHandler);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.MOUSE_WHEEL) > -1) {
-      if (this.mouseWheelHandler) (this.conductorTable.mouseWheel || window).removeEventListener('wheel', this.mouseWheelHandler);
+      if (this.mouseWheelHandler) (this.eventTargetTable.mouseWheel || window).removeEventListener('wheel', this.mouseWheelHandler);
       this.mouseWheelHandler = ((refreshRate === 0.0) ? this.onWindowMouseWheel.bind(this) : debounce(this.onWindowMouseWheel.bind(this), refreshRate)) as EventListener;
-      this.conductorTable.mouseWheel = conductor;
-      conductor.addEventListener('wheel', this.mouseWheelHandler);
+      this.eventTargetTable.mouseWheel = target;
+      target.addEventListener('wheel', this.mouseWheelHandler);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.MOUSE_MOVE) > -1) {
-      if (this.mouseMoveHandler) (this.conductorTable.mouseMove || window).removeEventListener('mousemove', this.mouseMoveHandler);
+      if (this.mouseMoveHandler) (this.eventTargetTable.mouseMove || window).removeEventListener('mousemove', this.mouseMoveHandler);
       this.mouseMoveHandler = ((refreshRate === 0.0) ? this.onWindowMouseMove.bind(this) : debounce(this.onWindowMouseMove.bind(this), refreshRate)) as EventListener;
-      this.conductorTable.mouseMove = conductor;
-      conductor.addEventListener('mousemove', this.mouseMoveHandler);
+      this.eventTargetTable.mouseMove = target;
+      target.addEventListener('mousemove', this.mouseMoveHandler);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {

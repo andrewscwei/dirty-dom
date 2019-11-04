@@ -13,7 +13,7 @@ export interface ResponsiveDescriptor {
   /**
    * The DOM element or window to listen for events.
    */
-  conductor?: Window | HTMLElement;
+  target?: Window | HTMLElement;
 
   /**
    * Event types to listen for.

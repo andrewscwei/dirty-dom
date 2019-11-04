@@ -35,7 +35,7 @@ class Foo {
       // Invokes `update` whenever the scroll position of the element with ID
       // 'foo' changes, debounced by 10ms.
       [EventType.SCROLL]: {
-        conductor: document.getElementById('foo'),
+        target: document.getElementById('foo'),
         refreshRate: 10,
       },
 

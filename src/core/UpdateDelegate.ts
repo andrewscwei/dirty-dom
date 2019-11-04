@@ -11,7 +11,7 @@ import requestAnimationFrame from '../utils/requestAnimationFrame';
 /**
  * Delegate for managing update calls of an object.
  */
-class UpdateDelegate {
+export default class UpdateDelegate {
   /**
    * Default refresh (debounce) rate in milliseconds.
    */
@@ -544,5 +544,3 @@ class UpdateDelegate {
     this.setDirty(DirtyType.FRAME);
   }
 }
-
-export default UpdateDelegate;

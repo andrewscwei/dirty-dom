@@ -1,3 +1,4 @@
+export { default as CrossScrollDelegate } from './core/CrossScrollDelegate';
 export { default as ScrollDelegate } from './core/ScrollDelegate';
 export { default as UpdateDelegate } from './core/UpdateDelegate';
 export { default as DirtyType } from './enums/DirtyType';

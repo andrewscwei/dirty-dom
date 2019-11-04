@@ -4,7 +4,7 @@ import EventType from '../enums/EventType';
 import { DirtyInfo, ResponsiveDescriptor, typeIsWindow, UpdateDelegator } from '../types';
 import UpdateDelegate from './UpdateDelegate';
 
-export default class ScrollDelegate extends UpdateDelegate {
+export default class CrossScrollDelegate extends UpdateDelegate {
   protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
     ...UpdateDelegate.DEFAULT_DIRTY_INFO,
     [DirtyType.SIZE]: {
@@ -73,8 +73,8 @@ export default class ScrollDelegate extends UpdateDelegate {
         step,
         minTargetPos: new Point([targetRectMin.left, targetRectMin.top]),
         maxTargetPos: new Point([targetRectMax.left, targetRectMax.top]),
-        targetPos: new Point([step.x * targetRectMax.left, step.y * targetRectMax.top]),
-        targetStep: step,
+        targetPos: new Point([step.y * targetRectMax.left, step.x * targetRectMax.top]),
+        targetStep: new Point([step.y, step.x]),
       };
     }
     catch (err) {

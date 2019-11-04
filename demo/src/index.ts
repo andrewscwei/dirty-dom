@@ -19,8 +19,8 @@ const delegate = new ScrollDelegate({
     }
 
     if (size) {
-      const scrollerNode = document.getElementById('scroller');
       debug('size')(size);
+      const scrollerNode = document.getElementById('scroller');
       scrollerNode!.style.height = size.targetMaxSize.height;
     }
 

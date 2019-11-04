@@ -4,24 +4,24 @@
  */
 
 import debug from 'debug';
-import { CrossScrollDelegate, DirtyInfo, DirtyType, EventType } from '../../build';
+import { DirtyInfo, DirtyType, EventType, ScrollDelegate } from '../../build';
 
 window.localStorage.debug = 'position,size,input';
 
-const delegate = new CrossScrollDelegate({
+const delegate = new ScrollDelegate({
   update(info: DirtyInfo) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
 
     if (position) {
       debug('position')(position);
       const mainNode = document.getElementById('main');
-      mainNode!.style.transform = `translate3d(-${position.targetPos.x}px, 0, 0)`;
+      mainNode!.style.transform = `translate3d(0, -${position.targetPos.y}px, 0)`;
     }
 
     if (size) {
       debug('size')(size);
       const scrollerNode = document.getElementById('scroller');
-      scrollerNode!.style.height = size.targetMaxSize.width;
+      scrollerNode!.style.height = size.targetMaxSize.height;
     }
 
     if (input) {

@@ -1,8 +1,9 @@
 // © Andrew Wei
 
+import { Point, Rect } from 'spase';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
-import { DirtyInfo, ResponsiveDescriptor, typeIsDirtyType, typeIsEventType, UpdateDelegator } from '../types';
+import { DirtyInfo, ResponsiveDescriptor, typeIsDirtyType, typeIsEventType, typeIsWindow, UpdateDelegator } from '../types';
 import cancelAnimationFrame from '../utils/cancelAnimationFrame';
 import debounce from '../utils/debounce';
 import requestAnimationFrame from '../utils/requestAnimationFrame';
@@ -17,8 +18,16 @@ class UpdateDelegate {
   protected static DEFAULT_REFRESH_RATE = 0.0;
 
   protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
-    [DirtyType.POSITION]: {},
-    [DirtyType.SIZE]: {},
+    [DirtyType.POSITION]: {
+      minPos: null,
+      maxPos: null,
+      pos: null,
+      step: null,
+    },
+    [DirtyType.SIZE]: {
+      minSize: null,
+      maxSize: null,
+    },
     [DirtyType.LAYOUT]: {},
     [DirtyType.STATE]: {},
     [DirtyType.DATA]: {},
@@ -72,6 +81,7 @@ class UpdateDelegate {
    */
   private conductorTable: { [key: string]: Window | HTMLElement } = {};
   private dirtyTable: number = 0;
+  private responsiveDescriptors?: { [key in EventType]?: number | true | { conductor?: Window | HTMLElement, refreshRate?: number } };
 
   /**
    * Creates a new ElementUpdateDelegate instance.
@@ -81,6 +91,14 @@ class UpdateDelegate {
    */
   constructor(delegator: UpdateDelegator, descriptors?: { [key in EventType]?: number | true | { conductor?: Window | HTMLElement, refreshRate?: number } }) {
     this.delegator = delegator;
+    this.responsiveDescriptors = descriptors;
+  }
+
+  /**
+   * Initiates the update delegation process.
+   */
+  init() {
+    const descriptors = this.responsiveDescriptors;
 
     if (descriptors) {
       for (const key in descriptors) {
@@ -115,7 +133,7 @@ class UpdateDelegate {
   /**
    * Destroys all resources allocated by this UpdateDelegate instance.
    */
-  destroy() {
+  deinit() {
     if (this.pendingAnimationFrame !== undefined) {
       cancelAnimationFrame(this.pendingAnimationFrame);
     }
@@ -203,6 +221,10 @@ class UpdateDelegate {
         ...((this.constructor as any).DEFAULT_DIRTY_INFO),
         ...this.dirtyInfo,
       };
+
+      this.updatePositionInfo(this.conductorTable.scroll);
+      this.updateSizeInfo();
+
       break;
     default:
       this.dirtyTable |= dirtyType;
@@ -219,6 +241,44 @@ class UpdateDelegate {
     }
   }
 
+  protected updatePositionInfo(reference?: HTMLElement | Window) {
+    try {
+      const refEl = reference || window;
+      const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
+      const refRectMin = refRect.clone({ x: 0, y: 0 });
+      const refRectFull = Rect.from(refEl, { overflow: true });
+      const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
+      const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
+
+      this.dirtyInfo[DirtyType.POSITION] = {
+        ...this.dirtyInfo[DirtyType.POSITION] || {},
+        minPos: new Point([refRectMin.left, refRectMin.top]),
+        maxPos: new Point([refRectMax.left, refRectMax.top]),
+        pos: new Point([refRect.left, refRect.top]),
+        step,
+      };
+    }
+    catch (err) {
+
+    }
+  }
+
+  protected updateSizeInfo() {
+    try {
+      const rectMin = Rect.fromViewport();
+      const rectMax = Rect.from(window, { overflow: true });
+
+      this.dirtyInfo[DirtyType.SIZE] = {
+        ...this.dirtyInfo[DirtyType.SIZE] || {},
+        minSize: rectMin.size,
+        maxSize: rectMax!.size,
+      };
+    }
+    catch (err) {
+
+    }
+  }
+
   /**
    * Sets up the responsiveness to the provided conductor. Only the following
    * event types support a custom conductor, the rest use window as the
@@ -229,7 +289,7 @@ class UpdateDelegate {
    *
    * @param params - @see ResponsiveDescriptor
    */
-  protected initResponsiveness({ conductor = window, refreshRate = (this.constructor as any).DEFAULT_REFRESH_RATE, eventTypes = [] }: ResponsiveDescriptor = {}) {
+  private initResponsiveness({ conductor = window, refreshRate = (this.constructor as any).DEFAULT_REFRESH_RATE, eventTypes = [] }: ResponsiveDescriptor = {}) {
     const isUniversal = eventTypes.length === 0;
 
     if (isUniversal || eventTypes.indexOf(EventType.RESIZE) > -1 || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
@@ -306,7 +366,7 @@ class UpdateDelegate {
   /**
    * Handler invoked whenever a visual update is required.
    */
-  protected update() {
+  private update() {
     if (this.pendingAnimationFrame !== undefined) {
       cancelAnimationFrame(this.pendingAnimationFrame);
     }
@@ -336,7 +396,8 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onWindowResize(event: Event) {
+  private onWindowResize(event: Event) {
+    this.updateSizeInfo();
     this.setDirty(DirtyType.SIZE);
   }
 
@@ -344,7 +405,8 @@ class UpdateDelegate {
    * Handler invoked when the window scrolls.
    * @param event - The dispatched event.
    */
-  protected onScroll(event: Event) {
+  private onScroll(event: Event) {
+    this.updatePositionInfo(event.currentTarget as HTMLElement | Window);
     this.setDirty(DirtyType.POSITION);
   }
 
@@ -353,7 +415,7 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onWindowMouseMove(event: MouseEvent) {
+  private onWindowMouseMove(event: MouseEvent) {
     this.dirtyInfo[DirtyType.INPUT] = {
       ...this.dirtyInfo[DirtyType.INPUT] || {},
       mouseX: event.clientX,
@@ -368,7 +430,7 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onWindowMouseWheel(event: MouseWheelEvent) {
+  private onWindowMouseWheel(event: MouseWheelEvent) {
     this.dirtyInfo[DirtyType.INPUT] = {
       ...this.dirtyInfo[DirtyType.INPUT] || {},
       mouseWheelX: event.deltaX,
@@ -383,7 +445,7 @@ class UpdateDelegate {
    *
    * @param event = The dispatched event.
    */
-  protected onWindowOrientationChange(event: Event) {
+  private onWindowOrientationChange(event: Event) {
     const win = window as any;
 
     let x: number;
@@ -421,7 +483,7 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onWindowKeyUp(event: KeyboardEvent) {
+  private onWindowKeyUp(event: KeyboardEvent) {
     const prevInfo = this.dirtyInfo[DirtyType.INPUT] || {};
 
     this.dirtyInfo[DirtyType.INPUT] = {
@@ -440,7 +502,7 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onWindowKeyDown(event: KeyboardEvent) {
+  private onWindowKeyDown(event: KeyboardEvent) {
     const prevInfo = this.dirtyInfo[DirtyType.INPUT] || {};
 
     this.dirtyInfo[DirtyType.INPUT] = {
@@ -459,7 +521,7 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onWindowKeyPress(event: KeyboardEvent) {
+  private onWindowKeyPress(event: KeyboardEvent) {
     const prevInfo = this.dirtyInfo[DirtyType.INPUT] || {};
 
     this.dirtyInfo[DirtyType.INPUT] = {
@@ -478,7 +540,7 @@ class UpdateDelegate {
    *
    * @param event - The dispatched event.
    */
-  protected onEnterFrame(event: Event) {
+  private onEnterFrame(event: Event) {
     this.setDirty(DirtyType.FRAME);
   }
 }

@@ -63,49 +63,49 @@ class Foo {
 
   /**
    * This function is managed by the browser's `requestAnimationFrame()` method
-   * and is only invoked if something is marked as dirty. The `status` param
+   * and is only invoked if something is marked as dirty. The `info` param
    * tells you what is dirty in the current animation frame.
    */
-  update(status) {
-    if (status[DirtyType.POSITION]) {
+  update(info) {
+    if (info[DirtyType.POSITION]) {
       // Triggered if manually marked as dirty or whenever the window or an
       // element scrolls, if enabled on init.
     }
 
-    if (status[DirtyType.SIZE]) {
+    if (info[DirtyType.SIZE]) {
       // Triggered if manually marked as dirty or whenever the window resizes,
       // if enabled on init.
     }
 
-    if (status[DirtyType.LAYOUT]) {
+    if (info[DirtyType.LAYOUT]) {
       // Triggered if manually marked as dirty.
     }
 
-    if (status[DirtyType.STATE]) {
+    if (info[DirtyType.STATE]) {
       // Triggered if manually marked as dirty.
     }
 
-    if (status[DirtyType.DATA]) {
+    if (info[DirtyType.DATA]) {
       // Triggered if manually marked as dirty.
     }
 
-    if (status[DirtyType.LOCALE]) {
+    if (info[DirtyType.LOCALE]) {
       // Triggered if manually marked as dirty.
     }
 
-    if (status[DirtyType.CONFIG]) {
+    if (info[DirtyType.CONFIG]) {
       // Triggered if manually marked as dirty.
     }
 
-    if (status[DirtyType.STYLE]) {
+    if (info[DirtyType.STYLE]) {
       // Triggered if manually marked as dirty.
     }
 
-    if (status[DirtyType.INPUT]) {
+    if (info[DirtyType.INPUT]) {
       // Triggered if manually marked as dirty (not recommended) or whenever a
       // key event or mouse event is detected, if enabled on init.
 
-      console.log(status[DirtyType.INPUT]);
+      console.log(info[DirtyType.INPUT]);
 
       // Prints:
       // {
@@ -119,11 +119,11 @@ class Foo {
       // }
     }
 
-    if (status[DirtyType.ORIENTATION]) {
+    if (info[DirtyType.ORIENTATION]) {
       // Triggered if manually marked as dirty (not recommended) or whenever the
       // device  orientation changes, if enabled on init.
 
-      console.log(status[DirtyType.ORIENTATION]);
+      console.log(info[DirtyType.ORIENTATION]);
       // Prints:
       // {
       //   x: _,
@@ -132,7 +132,7 @@ class Foo {
       // }
     }
 
-    if (status[DirtyType.FRAME]) {
+    if (info[DirtyType.FRAME]) {
       // Triggered if manually marked as dirty (not recommended) or on every
       // frame, if enabled on init.
     }

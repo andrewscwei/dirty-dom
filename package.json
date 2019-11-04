@@ -33,8 +33,8 @@
     "@types/debug": "^4.1.5",
     "@types/html-webpack-plugin": "^3.2.1",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.0",
-    "@types/webpack": "^4.39.5",
+    "@types/node": "^12.12.5",
+    "@types/webpack": "^4.39.8",
     "@types/webpack-env": "^1.14.1",
     "@types/webpack-node-externals": "^1.6.3",
     "babel-loader": "^8.0.6",
@@ -48,12 +48,12 @@
     "tslint": "^5.20.0",
     "typescript": "^3.6.4",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9",
+    "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0",
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "spase": "^3.0.1"
+    "spase": "^3.10.0"
   },
   "types": "build/index.d.ts"
 }

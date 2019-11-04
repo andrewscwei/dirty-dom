@@ -53,7 +53,7 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "spase": "^3.10.0"
+    "spase": "^3.11.0"
   },
   "types": "build/index.d.ts"
 }

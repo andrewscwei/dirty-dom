@@ -81,7 +81,7 @@ export default class UpdateDelegate {
    */
   private eventTargetTable: { [key: string]: Window | HTMLElement } = {};
   private dirtyTable: number = 0;
-  private responsiveDescriptors?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
+  private responsivenessTable?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
 
   /**
    * Creates a new ElementUpdateDelegate instance.
@@ -91,14 +91,14 @@ export default class UpdateDelegate {
    */
   constructor(delegator: UpdateDelegator, descriptors?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } }) {
     this.delegator = delegator;
-    this.responsiveDescriptors = descriptors;
+    this.responsivenessTable = descriptors;
   }
 
   /**
    * Initiates the update delegation process.
    */
   init() {
-    const descriptors = this.responsiveDescriptors;
+    const descriptors = this.responsivenessTable;
 
     if (descriptors) {
       for (const key in descriptors) {

@@ -21,7 +21,7 @@
       #main {
         align-items: center;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         height: 100%;
         justify-content: flex-start;
         left: 0;
@@ -32,7 +32,6 @@
 
       .box {
         align-items: center;
-        color: #333;
         display: flex;
         flex: 0 0 auto;
         font-size: 200px;
@@ -43,17 +42,18 @@
     </style>
   </head>
   <body>
-    <div id='scroller' style='pointer-events: none; width: 100%;'></div>
+    <div id='scroller' style='pointer-events: none; width: 100%; height: 100%;'></div>
     <main id='main'>
-      <div id='a-0' class='box' style='background: #000000;'>1</div>
-      <div id='a-1' class='box' style='background: #050505;'>2</div>
-      <div id='a-2' class='box' style='background: #0a0a0a;'>3</div>
-      <div id='a-3' class='box' style='background: #0f0f0f;'>4</div>
-      <div id='a-4' class='box' style='background: #141414;'>5</div>
-      <div id='a-5' class='box' style='background: #0f0f0f;'>6</div>
-      <div id='a-6' class='box' style='background: #0a0a0a;'>7</div>
-      <div id='a-7' class='box' style='background: #050505;'>8</div>
-      <div id='a-8' class='box' style='background: #000000;'>9</div>
+      <div id='a-0' class='box' style='color: #333; background: rgba(255, 255, 255, 0);'>1</div>
+      <div id='a-1' class='box' style='color: #333; background: rgba(255, 255, 255, 0.06);'>2</div>
+      <div id='a-2' class='box' style='color: #333; background: rgba(255, 255, 255, 0.12);'>3</div>
+      <div id='a-3' class='box' style='color: #222; background: rgba(255, 255, 255, 0.18);'>4</div>
+      <div id='a-4' class='box' style='color: #333; background: rgba(255, 255, 255, 0.24);'>5</div>
+      <div id='a-5' class='box' style='color: #333; background: rgba(255, 255, 255, 0.3);'>6</div>
+      <div id='a-6' class='box' style='color: #333; background: rgba(255, 255, 255, 0.36);'>7</div>
+      <div id='a-7' class='box' style='color: #333; background: rgba(255, 255, 255, 0.42);'>8</div>
+      <div id='a-8' class='box' style='color: #333; background: rgba(255, 255, 255, 0.48);'>9</div>
+      <div id='a-9' class='box' style='color: #333; background: rgba(255, 255, 255, 0.54);'>10</div>
     </main>
   </body>
 </html>

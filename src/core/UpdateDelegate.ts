@@ -84,7 +84,7 @@ export default class UpdateDelegate {
   private responsivenessTable?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
 
   /**
-   * Creates a new ElementUpdateDelegate instance.
+   * Creates a new UpdateDelegate instance.
    *
    * @param delegator - The object to create this update delegate for.
    * @param descriptors - Map of responsive descriptors.
@@ -241,6 +241,11 @@ export default class UpdateDelegate {
     }
   }
 
+  /**
+   * Updates the dirty info for position.
+   *
+   * @param reference - The reference element.
+   */
   protected updatePositionInfo(reference?: HTMLElement | Window) {
     try {
       const refEl = reference || window;
@@ -263,6 +268,9 @@ export default class UpdateDelegate {
     }
   }
 
+  /**
+   * Updates the dirty info for size.
+   */
   protected updateSizeInfo() {
     try {
       const rectMin = Rect.fromViewport();

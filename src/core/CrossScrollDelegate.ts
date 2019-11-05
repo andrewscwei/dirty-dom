@@ -1,84 +1,89 @@
-import { Point, Rect } from 'spase';
+import { Point, Rect, Size } from 'spase';
 import DirtyType from '../enums/DirtyType';
-import EventType from '../enums/EventType';
-import { DirtyInfo, ResponsiveDescriptor, typeIsWindow, UpdateDelegator } from '../types';
-import UpdateDelegate from './UpdateDelegate';
+import ScrollDelegate from './ScrollDelegate';
 
-export default class CrossScrollDelegate extends UpdateDelegate {
-  protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
-    ...UpdateDelegate.DEFAULT_DIRTY_INFO,
-    [DirtyType.SIZE]: {
-      ...UpdateDelegate.DEFAULT_DIRTY_INFO[DirtyType.SIZE],
-      targetMinSize: null,
-      targetMaxSize: null,
-    },
-    [DirtyType.POSITION]: {
-      ...UpdateDelegate.DEFAULT_DIRTY_INFO[DirtyType.POSITION],
-      targetPos: null,
-      targetMinPos: null,
-      targetMaxPos: null,
-    },
-  };
+export default class CrossScrollDelegate extends ScrollDelegate {
+  /** @inheritdoc */
+  protected updatePositionInfo(reference?: HTMLElement | Window) {
+    super.updatePositionInfo(reference);
 
-  private scrollTarget?: HTMLElement;
+    const info = this.dirtyInfo[DirtyType.POSITION];
 
-  constructor(delegator: UpdateDelegator, scrollTarget?: HTMLElement, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
-    super(delegator, descriptors);
-    this.scrollTarget = scrollTarget;
-  }
-
-  deinit() {
-    super.deinit();
-
-    this.scrollTarget = undefined;
-  }
-
-  updateSizeInfo() {
     try {
-      const targetRectMin = Rect.from(this.scrollTarget);
-      const targetRectMax = Rect.from(this.scrollTarget, { overflow: true });
-
-      if (targetRectMin && targetRectMax) {
-        this.dirtyInfo[DirtyType.SIZE] = {
-          ...this.dirtyInfo[DirtyType.SIZE] || {},
-          targetMinSize: targetRectMin.size,
-          targetMaxSize: targetRectMax!.size,
-        };
-      }
-    }
-    catch (err) {
-
-    }
-
-    super.updateSizeInfo();
-  }
-
-  updatePositionInfo(reference?: HTMLElement | Window) {
-    try {
-      const refEl = reference || window;
-      const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-      const refRectMin = refRect.clone({ x: 0, y: 0 });
-      const refRectFull = Rect.from(refEl, { overflow: true });
-      const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
-      const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
-      const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
-      const targetRectMin = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
-      const targetRectMax = targetRectFull!.clone({ x: targetRectFull!.width - targetRectMin.width, y: targetRectFull!.height - targetRectMin.height });
+      const step = info!.step as Point;
 
       this.dirtyInfo[DirtyType.POSITION] = {
-        ...this.dirtyInfo[DirtyType.POSITION] || {},
-        minPos: new Point([refRectMin.left, refRectMin.top]),
-        maxPos: new Point([refRectMax.left, refRectMax.top]),
-        pos: new Point([refRect.left, refRect.top]),
-        step,
-        minTargetPos: new Point([targetRectMin.left, targetRectMin.top]),
-        maxTargetPos: new Point([targetRectMax.left, targetRectMax.top]),
-        targetPos: new Point([step.y * targetRectMax.left, step.x * targetRectMax.top]),
-        targetStep: new Point([step.y, step.x]),
+        ...info,
+        targetPos: this.stepToNaturalPosition(step),
+        targetStep: step.invert(),
       };
     }
     catch (err) {
-      super.updatePositionInfo(reference);
+
     }
+  }
+
+  /** @inheritdoc */
+  protected stepToVirtualPosition(step: Point | undefined): Point | undefined {
+    if (!step || !this.scrollTarget) return undefined;
+
+    const targetRectMin = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
+    const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
+    const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
+
+    if (!targetRectFull) return undefined;
+
+    const targetRectFullWithScrollBreaks = Rect.fromPointAndSize(new Point([0, 0]), targetRectFull.size.add(aggregatedScrollBreaks));
+
+    const position = new Point({
+      x: step.y * (targetRectFullWithScrollBreaks.width - targetRectMin.width),
+      y: step.x * (targetRectFullWithScrollBreaks.height - targetRectMin.height),
+    });
+
+    return position;
+  }
+
+  /** @inheritdoc */
+  protected virtualPositionToStep(position: Point | undefined): Point | undefined {
+    if (!position || !this.scrollTarget) return undefined;
+
+    const targetRectMin = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
+    const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
+    const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
+
+    if (!targetRectFull) return undefined;
+
+    const targetRectFullWithScrollBreaks = Rect.fromPointAndSize(new Point([0, 0]), targetRectFull.size.add(aggregatedScrollBreaks));
+
+    return new Point({
+      x: position.y / (targetRectFullWithScrollBreaks.height - targetRectMin.height),
+      y: position.x / (targetRectFullWithScrollBreaks.width - targetRectMin.width),
+    });
+  }
+
+  /** @inheritdoc */
+  protected virtualPositionToNaturalPosition(position: Point | undefined): Point | undefined {
+    if (!position || !this.scrollTarget) return undefined;
+
+    const step = this.virtualPositionToStep(position);
+
+    if (!step) return undefined;
+
+    const horizontalScrollBreak = this.getHorizontalScrollBreakAt(step.y) || this.getNearestHorizontalScrollBreakBefore(step.y) || { step: 0, length: 0 };
+    const verticalScrollBreak = this.getHorizontalScrollBreakAt(step.x) || this.getNearestVerticalScrollBreakBefore(step.x) || { step: 0, length: 0 };
+    const scrollBreakStep = new Point({ x: horizontalScrollBreak.step, y: verticalScrollBreak.step });
+    const scrollBreakPosition = this.stepToVirtualPosition(scrollBreakStep.invert()) || new Point();
+
+    const assumedPosition = new Point({
+      x: position.x - this.aggregateHorizontalScrollBreaksBefore(step.y),
+      y: position.y - this.aggregateVerticalScrollBreaksBefore(step.x),
+    });
+
+    const normalizedPosition = new Point({
+      x: position.x > (scrollBreakPosition.x + horizontalScrollBreak.length) ? assumedPosition.x : Math.min(assumedPosition.x + horizontalScrollBreak.length, scrollBreakPosition.x - this.aggregateHorizontalScrollBreaksBefore(horizontalScrollBreak.step)),
+      y: position.y > (scrollBreakPosition.y + verticalScrollBreak.length) ? assumedPosition.y : Math.min(assumedPosition.y + verticalScrollBreak.length, scrollBreakPosition.y - this.aggregateVerticalScrollBreaksBefore(verticalScrollBreak.step)),
+    });
+
+    return normalizedPosition;
   }
 }

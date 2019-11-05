@@ -22,25 +22,45 @@ export default class ScrollDelegate extends UpdateDelegate {
     },
   };
 
-  private scrollTarget?: HTMLElement;
+  /**
+   * Target element to simulate the scroll on.
+   */
+  protected scrollTarget?: HTMLElement;
 
+  /**
+   * Definied scroll break descriptors. A scroll break is a point in scrolling
+   * where the target holds its position still until the scroll break length
+   * is surprassed.
+   */
   private scrollBreakDescriptor?: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor;
 
+  /**
+   * Sets scroll breaks for this delegate.
+   */
   set scrollBreaks(val: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor) {
     this.scrollBreakDescriptor = val;
   }
 
+  /**
+   * Creates a new ScrollDelegate instance.
+   *
+   * @param delegator - The object to create this scroll delegate for.
+   * @param scrollTarget - The element to simulate the scroll behavior on.
+   * @param descriptors - Map of responsive descriptors.
+   */
   constructor(delegator: UpdateDelegator, scrollTarget?: HTMLElement, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
     super(delegator, descriptors);
     this.scrollTarget = scrollTarget;
   }
 
+  /** @inheritdoc */
   deinit() {
     super.deinit();
 
     this.scrollTarget = undefined;
   }
 
+  /** @inheritdoc */
   protected updateSizeInfo() {
     try {
       const targetRectMin = Rect.from(this.scrollTarget);
@@ -61,6 +81,7 @@ export default class ScrollDelegate extends UpdateDelegate {
     super.updateSizeInfo();
   }
 
+  /** @inheritdoc */
   protected updatePositionInfo(reference?: HTMLElement | Window) {
     try {
       const refEl = reference || window;
@@ -165,7 +186,7 @@ export default class ScrollDelegate extends UpdateDelegate {
     const scrollBreakPosition = this.stepToVirtualPosition(scrollBreakStep) || new Point();
 
     const rawPosition = new Point({
-      x: position.x - this.aggregateVerticalScrollBreaksBefore(step.x),
+      x: position.x - this.aggregateHorizontalScrollBreaksBefore(step.x),
       y: position.y - this.aggregateVerticalScrollBreaksBefore(step.y),
     });
 
@@ -392,24 +413,36 @@ export default class ScrollDelegate extends UpdateDelegate {
     }, 0);
   }
 
+  /**
+   * Gets all the scroll breaks defined for this delegate, sorted by step.
+   *
+   * @return Descriptor of scroll breaks.
+   */
   private getScrollBreaks(): ScrollBreakDescriptor {
     if (!this.scrollBreakDescriptor) return {};
-    const refEl = this.eventTargetTable.scroll || window;
-    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-    const refRectMin = refRect.clone({ x: 0, y: 0 });
-    const refRectFull = Rect.from(refEl, { overflow: true });
-    const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
-    const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
-    const val = this.scrollBreakDescriptor({
-      minPos: new Point([refRectMin.left, refRectMin.top]),
-      maxPos: new Point([refRectMax.left, refRectMax.top]),
-      pos: new Point([refRect.left, refRect.top]),
-      step,
-    });
 
-    return {
-      x: [...val.x || []].sort((a, b) => a.step - b.step),
-      y: [...val.y || []].sort((a, b) => a.step - b.step),
-    };
+    try {
+      const refEl = this.eventTargetTable.scroll || window;
+      const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
+      const refRectMin = refRect.clone({ x: 0, y: 0 });
+      const refRectFull = Rect.from(refEl, { overflow: true });
+
+      const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
+      const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
+      const val = this.scrollBreakDescriptor({
+        minPos: new Point([refRectMin.left, refRectMin.top]),
+        maxPos: new Point([refRectMax.left, refRectMax.top]),
+        pos: new Point([refRect.left, refRect.top]),
+        step,
+      });
+
+      return {
+        x: [...val.x || []].sort((a, b) => a.step - b.step),
+        y: [...val.y || []].sort((a, b) => a.step - b.step),
+      };
+    }
+    catch (err) {
+      return {};
+    }
   }
 }

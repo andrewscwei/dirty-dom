@@ -11,7 +11,7 @@ export default class ScrollDelegate extends UpdateDelegate {
       ...UpdateDelegate.DEFAULT_DIRTY_INFO[DirtyType.SIZE],
       targetMinSize: null,
       targetMaxSize: null,
-      aggregatedScrollBreaks: null,
+      targetAggregatedMaxSize: null,
     },
     [DirtyType.POSITION]: {
       ...UpdateDelegate.DEFAULT_DIRTY_INFO[DirtyType.POSITION],
@@ -62,20 +62,17 @@ export default class ScrollDelegate extends UpdateDelegate {
 
   /** @inheritdoc */
   protected updateSizeInfo() {
-    try {
-      const targetRectMin = Rect.from(this.scrollTarget);
-      const targetRectMax = Rect.from(this.scrollTarget, { overflow: true });
-      const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
+    const targetRectMin = Rect.from(this.scrollTarget);
+    const targetRectMax = Rect.from(this.scrollTarget, { overflow: true });
+    const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
 
+    if (targetRectMin && targetRectMax) {
       this.dirtyInfo[DirtyType.SIZE] = {
         ...this.dirtyInfo[DirtyType.SIZE] || {},
-        targetMinSize: targetRectMin!.size,
-        targetMaxSize: targetRectMax!.size,
-        aggregatedScrollBreaks,
+        targetMinSize: targetRectMin.size,
+        targetMaxSize: targetRectMax.size,
+        targetAggregatedMaxSize: targetRectMax.size.add(aggregatedScrollBreaks),
       };
-    }
-    catch (err) {
-
     }
 
     super.updateSizeInfo();
@@ -83,32 +80,23 @@ export default class ScrollDelegate extends UpdateDelegate {
 
   /** @inheritdoc */
   protected updatePositionInfo(reference?: HTMLElement | Window) {
-    try {
-      const refEl = reference || window;
-      const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-      const refRectMin = refRect.clone({ x: 0, y: 0 });
-      const refRectFull = Rect.from(refEl, { overflow: true });
-      const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
-      const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
-      const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
-      const targetRectMin = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
-      const targetRectMax = targetRectFull!.clone({ x: targetRectFull!.width - targetRectMin.width, y: targetRectFull!.height - targetRectMin.height });
+    super.updatePositionInfo(reference);
 
-      this.dirtyInfo[DirtyType.POSITION] = {
-        ...this.dirtyInfo[DirtyType.POSITION] || {},
-        minPos: new Point([refRectMin.left, refRectMin.top]),
-        maxPos: new Point([refRectMax.left, refRectMax.top]),
-        pos: new Point([refRect.left, refRect.top]),
-        step,
-        minTargetPos: new Point([targetRectMin.left, targetRectMin.top]),
-        maxTargetPos: new Point([targetRectMax.left, targetRectMax.top]),
-        targetPos: this.stepToNaturalPosition(step),
-        targetStep: step,
-      };
-    }
-    catch (err) {
-      super.updatePositionInfo(reference);
-    }
+    const info = this.dirtyInfo[DirtyType.POSITION] || {};
+    const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
+
+    if (!targetRectFull) return;
+
+    const targetRectMin = (Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false }) || new Rect()).clone({ x: 0, y: 0});
+    const targetRectMax = targetRectFull.clone({ x: targetRectFull.width - targetRectMin.width, y: targetRectFull.height - targetRectMin.height });
+
+    this.dirtyInfo[DirtyType.POSITION] = {
+      ...info,
+      minTargetPos: new Point([targetRectMin.left, targetRectMin.top]),
+      maxTargetPos: new Point([targetRectMax.left, targetRectMax.top]),
+      targetPos: this.stepToNaturalPosition(info.step),
+      targetStep: info.step,
+    };
   }
 
   /**
@@ -421,28 +409,25 @@ export default class ScrollDelegate extends UpdateDelegate {
   private getScrollBreaks(): ScrollBreakDescriptor {
     if (!this.scrollBreakDescriptor) return {};
 
-    try {
-      const refEl = this.eventTargetTable.scroll || window;
-      const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-      const refRectMin = refRect.clone({ x: 0, y: 0 });
-      const refRectFull = Rect.from(refEl, { overflow: true });
+    const refEl = this.eventTargetTable.scroll || window;
+    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
+    const refRectMin = refRect.clone({ x: 0, y: 0 });
+    const refRectFull = Rect.from(refEl, { overflow: true });
 
-      const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
-      const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
-      const val = this.scrollBreakDescriptor({
-        minPos: new Point([refRectMin.left, refRectMin.top]),
-        maxPos: new Point([refRectMax.left, refRectMax.top]),
-        pos: new Point([refRect.left, refRect.top]),
-        step,
-      });
+    if (!refRectFull) return {};
 
-      return {
-        x: [...val.x || []].sort((a, b) => a.step - b.step),
-        y: [...val.y || []].sort((a, b) => a.step - b.step),
-      };
-    }
-    catch (err) {
-      return {};
-    }
+    const refRectMax = refRectMin.clone({ x: refRectFull.width - refRect.width, y: refRectFull.height - refRect.height });
+    const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
+    const val = this.scrollBreakDescriptor({
+      minPos: new Point([refRectMin.left, refRectMin.top]),
+      maxPos: new Point([refRectMax.left, refRectMax.top]),
+      pos: new Point([refRect.left, refRect.top]),
+      step,
+    });
+
+    return {
+      x: [...val.x || []].sort((a, b) => a.step - b.step),
+      y: [...val.y || []].sort((a, b) => a.step - b.step),
+    };
   }
 }

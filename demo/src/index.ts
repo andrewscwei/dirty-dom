@@ -17,7 +17,7 @@ const scrollDelegate = new ScrollDelegate({
 
     if (size) {
       // debug('size')(size);
-      scrollerNode!.style.height = size.targetMaxSize.height + size.aggregatedScrollBreaks.height;
+      scrollerNode!.style.height = size.targetAggregatedMaxSize.height;
     }
 
     if (position) {
@@ -40,7 +40,7 @@ const crossScrollDelegate = new CrossScrollDelegate({
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
     if (size) {
       // debug('size')(size);
-      scrollerNode!.style.height = size.targetMaxSize.width + size.aggregatedScrollBreaks.width;
+      scrollerNode!.style.height = size.targetAggregatedMaxSize.width;
     }
 
     if (position) {

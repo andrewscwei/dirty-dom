@@ -247,44 +247,39 @@ export default class UpdateDelegate {
    * @param reference - The reference element.
    */
   protected updatePositionInfo(reference?: HTMLElement | Window) {
-    try {
-      const refEl = reference || window;
-      const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl)!.clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-      const refRectMin = refRect.clone({ x: 0, y: 0 });
-      const refRectFull = Rect.from(refEl, { overflow: true });
-      const refRectMax = refRectMin.clone({ x: refRectFull!.width - refRect.width, y: refRectFull!.height - refRect.height });
-      const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
+    const refEl = reference || window;
+    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
+    const refRectMin = refRect.clone({ x: 0, y: 0 });
+    const refRectFull = Rect.from(refEl, { overflow: true });
 
-      this.dirtyInfo[DirtyType.POSITION] = {
-        ...this.dirtyInfo[DirtyType.POSITION] || {},
-        minPos: new Point([refRectMin.left, refRectMin.top]),
-        maxPos: new Point([refRectMax.left, refRectMax.top]),
-        pos: new Point([refRect.left, refRect.top]),
-        step,
-      };
-    }
-    catch (err) {
+    if (!refRectFull) return;
 
-    }
+    const refRectMax = refRectMin.clone({ x: refRectFull.width - refRect.width, y: refRectFull.height - refRect.height });
+    const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
+
+    this.dirtyInfo[DirtyType.POSITION] = {
+      ...this.dirtyInfo[DirtyType.POSITION] || {},
+      minPos: new Point([refRectMin.left, refRectMin.top]),
+      maxPos: new Point([refRectMax.left, refRectMax.top]),
+      pos: new Point([refRect.left, refRect.top]),
+      step,
+    };
   }
 
   /**
    * Updates the dirty info for size.
    */
   protected updateSizeInfo() {
-    try {
-      const rectMin = Rect.fromViewport();
-      const rectMax = Rect.from(window, { overflow: true });
+    const rectMin = Rect.fromViewport();
+    const rectMax = Rect.from(window, { overflow: true });
 
-      this.dirtyInfo[DirtyType.SIZE] = {
-        ...this.dirtyInfo[DirtyType.SIZE] || {},
-        minSize: rectMin.size,
-        maxSize: rectMax!.size,
-      };
-    }
-    catch (err) {
+    if (!rectMax) return;
 
-    }
+    this.dirtyInfo[DirtyType.SIZE] = {
+      ...this.dirtyInfo[DirtyType.SIZE] || {},
+      minSize: rectMin.size,
+      maxSize: rectMax.size,
+    };
   }
 
   /**

@@ -19,14 +19,14 @@ export default class UpdateDelegate {
 
   protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
     [DirtyType.POSITION]: {
-      minPos: null,
-      maxPos: null,
-      pos: null,
-      step: null,
+      minPos: undefined,
+      maxPos: undefined,
+      pos: undefined,
+      step: undefined,
     },
     [DirtyType.SIZE]: {
-      minSize: null,
-      maxSize: null,
+      minSize: undefined,
+      maxSize: undefined,
     },
     [DirtyType.LAYOUT]: {},
     [DirtyType.STATE]: {},

@@ -9,15 +9,15 @@ export default class ScrollDelegate extends UpdateDelegate {
     ...UpdateDelegate.DEFAULT_DIRTY_INFO,
     [DirtyType.SIZE]: {
       ...UpdateDelegate.DEFAULT_DIRTY_INFO[DirtyType.SIZE],
-      targetMinSize: null,
-      targetMaxSize: null,
-      targetAggregatedMaxSize: null,
+      targetMinSize: undefined,
+      targetMaxSize: undefined,
+      targetAggregatedMaxSize: undefined,
     },
     [DirtyType.POSITION]: {
       ...UpdateDelegate.DEFAULT_DIRTY_INFO[DirtyType.POSITION],
-      targetPos: null,
-      targetMinPos: null,
-      targetMaxPos: null,
+      targetPos: undefined,
+      targetMinPos: undefined,
+      targetMaxPos: undefined,
     },
   };
 
@@ -42,6 +42,66 @@ export default class ScrollDelegate extends UpdateDelegate {
    * is surprassed.
    */
   private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor;
+
+  /**
+   * Gets the minimum scroll position of the reference element.
+   *
+   * @return Minimum scroll position.
+   */
+  get minPosition(): Point {
+    return new Point([0, 0]);
+  }
+
+  /**
+   * Gets the maximum scroll position of the reference element.
+   *
+   * @return Maximum scroll position.
+   */
+  get maxPosition(): Point {
+    const refEl = this.eventTargetTable.scroll || window;
+    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
+    const refRectFull = Rect.from(refEl, { overflow: true }) || new Rect();
+    const refRectMax = refRect.clone({ x: refRectFull.width - refRect.width, y: refRectFull.height - refRect.height });
+    return new Point([refRectMax.left, refRectMax.top]);
+  }
+
+  /**
+   * Gets the minimum position of the scroll target.
+   *
+   * @return Minimum postiion of the scroll target.
+   */
+  get scrollTargetMinPosition(): Point | undefined {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+    if (!scrollTarget) return undefined;
+
+    return new Point({
+      x: scrollTarget.scrollLeft,
+      y: scrollTarget.scrollTop,
+    });
+  }
+
+  /**
+   * Gets the maximum position of the scroll target.
+   *
+   * @return Maximum position of the scroll target.
+   */
+  get scrollTargetMaxPosition(): Point | undefined {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+    if (!scrollTarget) return undefined;
+
+    const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false });
+    if (!targetRectMin) return undefined;
+
+    const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
+    if (!targetRectFull) return undefined;
+
+    const targetRectMax = targetRectFull.clone({ x: targetRectFull.width - targetRectMin.width + scrollTarget.scrollLeft, y: targetRectFull.height - targetRectMin.height + scrollTarget.scrollTop });
+
+    return new Point({
+      x: targetRectMax.left,
+      y: targetRectMax.top,
+    });
+  }
 
   /**
    * Sets scroll breaks for this delegate.
@@ -113,25 +173,15 @@ export default class ScrollDelegate extends UpdateDelegate {
   protected updatePositionInfo(reference?: HTMLElement | Window) {
     super.updatePositionInfo(reference);
 
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
-
-    if (!scrollTarget) return;
-
     const info = this.dirtyInfo[DirtyType.POSITION] || {};
-    const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
-
-    if (!targetRectFull) return;
-
-    const targetRectMin = (Rect.from(scrollTarget, { reference: scrollTarget, overflow: false }) || new Rect()).clone({ x: 0, y: 0});
-    const targetRectMax = targetRectFull.clone({ x: targetRectFull.width - targetRectMin.width, y: targetRectFull.height - targetRectMin.height });
     const targetPos = this.stepToNaturalPosition(info.step);
 
     if (!targetPos) return;
 
     this.dirtyInfo[DirtyType.POSITION] = {
       ...info,
-      minTargetPos: new Point([targetRectMin.left, targetRectMin.top]),
-      maxTargetPos: new Point([targetRectMax.left, targetRectMax.top]),
+      minTargetPos: this.scrollTargetMinPosition,
+      maxTargetPos: this.scrollTargetMaxPosition,
       targetPos,
     };
 

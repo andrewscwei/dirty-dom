@@ -9,7 +9,6 @@ import { CrossScrollDelegate, DirtyInfo, DirtyType, EventType, ScrollDelegate } 
 window.localStorage.debug = 'position,size,input';
 
 const mainNode = document.getElementById('main');
-const scrollerNode = document.getElementById('scroller');
 
 const scrollDelegate = new ScrollDelegate({
   update(info: DirtyInfo) {
@@ -17,19 +16,17 @@ const scrollDelegate = new ScrollDelegate({
 
     if (size) {
       // debug('size')(size);
-      scrollerNode!.style.height = size.targetAggregatedMaxSize.height;
     }
 
     if (position) {
       // debug('position')(position);
-      mainNode!.style.transform = `translate3d(0, -${position.targetPos.y}px, 0)`;
     }
 
     if (input) {
       // debug('input')(input);
     }
   },
-}, document.getElementById('main')!, {
+}, {
   [EventType.SCROLL]: true,
   [EventType.RESIZE]: true,
   // [EventType.MOUSE_MOVE]: true,
@@ -38,26 +35,27 @@ const scrollDelegate = new ScrollDelegate({
 const crossScrollDelegate = new CrossScrollDelegate({
   update(info: DirtyInfo) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
+
     if (size) {
       // debug('size')(size);
-      scrollerNode!.style.height = size.targetAggregatedMaxSize.width;
     }
 
     if (position) {
       // debug('position')(position);
-      mainNode!.style.transform = `translate3d(-${position.targetPos.x}px, 0, 0)`;
     }
 
     if (input) {
       // debug('input')(input);
     }
   },
-}, document.getElementById('main')!, {
+}, {
   [EventType.SCROLL]: true,
   [EventType.RESIZE]: true,
   // [EventType.MOUSE_MOVE]: true,
 });
 
+scrollDelegate.scrollTarget = () => document.getElementById('main');
+scrollDelegate.scrollContainer = () => document.getElementById('scroller');
 scrollDelegate.scrollBreaks = info => {
   const { height: h } = Rect.from(mainNode)!;
 
@@ -72,6 +70,8 @@ scrollDelegate.scrollBreaks = info => {
   };
 };
 
+crossScrollDelegate.scrollTarget = () => document.getElementById('main');
+crossScrollDelegate.scrollContainer = () => document.getElementById('scroller');
 crossScrollDelegate.scrollBreaks = info => {
   const { width: w, height: h } = Rect.from(mainNode)!;
 
@@ -86,5 +86,5 @@ crossScrollDelegate.scrollBreaks = info => {
   };
 };
 
-// scrollDelegate.init();
-crossScrollDelegate.init();
+scrollDelegate.init();
+// crossScrollDelegate.init();

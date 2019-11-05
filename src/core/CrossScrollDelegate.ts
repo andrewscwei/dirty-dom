@@ -1,21 +1,14 @@
-import { Point } from 'spase';
-import DirtyType from '../enums/DirtyType';
+import { Point, Size } from 'spase';
 import ScrollDelegate from './ScrollDelegate';
 
 export default class CrossScrollDelegate extends ScrollDelegate {
   /** @inheritdoc */
-  protected updatePositionInfo(reference?: HTMLElement | Window) {
-    super.updatePositionInfo(reference);
+  protected stepToNaturalPosition(step: Point) {
+    return super.stepToNaturalPosition(step.invert());
+  }
 
-    const info = this.dirtyInfo[DirtyType.POSITION] || {};
-    const step = info.step as Point;
-
-    if (!step) return;
-
-    this.dirtyInfo[DirtyType.POSITION] = {
-      ...info,
-      targetPos: this.stepToNaturalPosition(step.invert()),
-      targetStep: step.invert(),
-    };
+  /** @inheritdoc */
+  protected updateScrollContainerSize(size: Size) {
+    super.updateScrollContainerSize(size.invert());
   }
 }

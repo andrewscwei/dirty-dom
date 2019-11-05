@@ -18,61 +18,82 @@ export default class ScrollDelegate extends UpdateDelegate {
       targetPos: null,
       targetMinPos: null,
       targetMaxPos: null,
-      targetStep: null,
     },
   };
 
   /**
-   * Target element to simulate the scroll on.
+   * Specifies if the scroll target position should automatically be updated.
    */
-  protected scrollTarget?: HTMLElement;
+  shouldAutoUpdateScrollTarget: boolean = true;
+
+  /**
+   * Gets the target element to simulate the scroll on.
+   */
+  private scrollTargetGetter?: () => HTMLElement | undefined | null;
+
+  /**
+   * Gets the associated scroll container.
+   */
+  private scrollContainerGetter?: () => HTMLElement | undefined | null;
 
   /**
    * Definied scroll break descriptors. A scroll break is a point in scrolling
    * where the target holds its position still until the scroll break length
    * is surprassed.
    */
-  private scrollBreakDescriptor?: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor;
+  private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor;
 
   /**
    * Sets scroll breaks for this delegate.
    */
   set scrollBreaks(val: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor) {
-    this.scrollBreakDescriptor = val;
+    this.scrollBreakGetter = val;
   }
 
   /**
-   * Creates a new ScrollDelegate instance.
-   *
-   * @param delegator - The object to create this scroll delegate for.
-   * @param scrollTarget - The element to simulate the scroll behavior on.
-   * @param descriptors - Map of responsive descriptors.
+   * Sets the scroll target for this delegate.
    */
-  constructor(delegator: UpdateDelegator, scrollTarget?: HTMLElement, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
-    super(delegator, descriptors);
-    this.scrollTarget = scrollTarget;
+  set scrollTarget(val: () => HTMLElement | undefined | null) {
+    this.scrollTargetGetter = val;
+  }
+
+  /**
+   * Associates a scroll container to this delegate.
+   */
+  set scrollContainer(val: () => HTMLElement | undefined | null) {
+    this.scrollContainerGetter = val;
   }
 
   /** @inheritdoc */
   deinit() {
     super.deinit();
 
-    this.scrollTarget = undefined;
+    this.scrollTargetGetter = undefined;
+    this.scrollContainerGetter = undefined;
+    this.scrollBreakGetter = undefined;
   }
 
   /** @inheritdoc */
   protected updateSizeInfo() {
-    const targetRectMin = Rect.from(this.scrollTarget);
-    const targetRectMax = Rect.from(this.scrollTarget, { overflow: true });
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+
+    if (!scrollTarget) return;
+
+    const targetRectMin = Rect.from(scrollTarget);
+    const targetRectMax = Rect.from(scrollTarget, { overflow: true });
     const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
 
     if (targetRectMin && targetRectMax) {
+      const targetAggregatedMaxSize = targetRectMax.size.add(aggregatedScrollBreaks);
+
       this.dirtyInfo[DirtyType.SIZE] = {
         ...this.dirtyInfo[DirtyType.SIZE] || {},
         targetMinSize: targetRectMin.size,
         targetMaxSize: targetRectMax.size,
-        targetAggregatedMaxSize: targetRectMax.size.add(aggregatedScrollBreaks),
+        targetAggregatedMaxSize,
       };
+
+      this.updateScrollContainerSize(targetAggregatedMaxSize);
     }
 
     super.updateSizeInfo();
@@ -82,21 +103,70 @@ export default class ScrollDelegate extends UpdateDelegate {
   protected updatePositionInfo(reference?: HTMLElement | Window) {
     super.updatePositionInfo(reference);
 
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+
+    if (!scrollTarget) return;
+
     const info = this.dirtyInfo[DirtyType.POSITION] || {};
-    const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
+    const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
 
     if (!targetRectFull) return;
 
-    const targetRectMin = (Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false }) || new Rect()).clone({ x: 0, y: 0});
+    const targetRectMin = (Rect.from(scrollTarget, { reference: scrollTarget, overflow: false }) || new Rect()).clone({ x: 0, y: 0});
     const targetRectMax = targetRectFull.clone({ x: targetRectFull.width - targetRectMin.width, y: targetRectFull.height - targetRectMin.height });
+    const targetPos = this.stepToNaturalPosition(info.step);
+
+    if (!targetPos) return;
 
     this.dirtyInfo[DirtyType.POSITION] = {
       ...info,
       minTargetPos: new Point([targetRectMin.left, targetRectMin.top]),
       maxTargetPos: new Point([targetRectMax.left, targetRectMax.top]),
-      targetPos: this.stepToNaturalPosition(info.step),
-      targetStep: info.step,
+      targetPos,
     };
+
+    this.updateScrollTargetPosition(targetPos);
+  }
+
+  /**
+   * Updates the size of the scroll container, if provided.
+   *
+   * @param size - The size to apply to the scroll container.
+   */
+  protected updateScrollContainerSize(size: Size) {
+    const scrollContainer = this.scrollContainerGetter && this.scrollContainerGetter();
+    if (!scrollContainer) return;
+
+    if (scrollContainer) {
+      scrollContainer.style.width = `${size.width}px`;
+      scrollContainer.style.height = `${size.height}px`;
+    }
+  }
+
+  /**
+   * Updates the scroll target position, if applicable.
+   *
+   * @param position - The position to apply to the scroll target.
+   */
+  protected updateScrollTargetPosition(position: Point) {
+    if (!this.shouldAutoUpdateScrollTarget) return;
+
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+    if (!scrollTarget) return;
+
+    scrollTarget.style.transform = `translate3d(-${isNaN(position.x) ? 0 : position.x}px, -${isNaN(position.y) ? 0 : position.y}px, 0)`;
+  }
+
+  /**
+   * Converts a scroll step to a natural position. A natural position is a
+   * coordinate in the scroll target that excludes all scroll breaks.
+   *
+   * @param step - Scroll step.
+   *
+   * @return The corresponding natural position.
+   */
+  protected stepToNaturalPosition(step: Point | undefined): Point | undefined {
+    return this.virtualPositionToNaturalPosition(this.stepToVirtualPosition(step));
   }
 
   /**
@@ -107,11 +177,13 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding virtual position.
    */
-  protected stepToVirtualPosition(step: Point | undefined): Point | undefined {
-    if (!step || !this.scrollTarget) return undefined;
+  private stepToVirtualPosition(step: Point | undefined): Point | undefined {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
 
-    const targetRectMin = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
-    const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
+    if (!step || !scrollTarget) return undefined;
+
+    const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
+    const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
     const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
 
     if (!targetRectFull) return undefined;
@@ -134,11 +206,13 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding scroll step.
    */
-  protected virtualPositionToStep(position: Point | undefined): Point | undefined {
-    if (!position || !this.scrollTarget) return undefined;
+  private virtualPositionToStep(position: Point | undefined): Point | undefined {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
 
-    const targetRectMin = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
-    const targetRectFull = Rect.from(this.scrollTarget, { reference: this.scrollTarget, overflow: true });
+    if (!position || !scrollTarget) return undefined;
+
+    const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
+    const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
     const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
 
     if (!targetRectFull) return undefined;
@@ -161,15 +235,15 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding natural position.
    */
-  protected virtualPositionToNaturalPosition(position: Point | undefined): Point | undefined {
-    if (!position || !this.scrollTarget) return undefined;
+  private virtualPositionToNaturalPosition(position: Point | undefined): Point | undefined {
+    if (!position) return undefined;
 
     const step = this.virtualPositionToStep(position);
 
     if (!step) return undefined;
 
     const horizontalScrollBreak = this.getHorizontalScrollBreakAt(step.x) || this.getNearestHorizontalScrollBreakBefore(step.x) || { step: 0, length: 0 };
-    const verticalScrollBreak = this.getHorizontalScrollBreakAt(step.y) || this.getNearestVerticalScrollBreakBefore(step.y) || { step: 0, length: 0 };
+    const verticalScrollBreak = this.getVerticalScrollBreakAt(step.y) || this.getNearestVerticalScrollBreakBefore(step.y) || { step: 0, length: 0 };
     const scrollBreakStep = new Point({ x: horizontalScrollBreak.step, y: verticalScrollBreak.step });
     const scrollBreakPosition = this.stepToVirtualPosition(scrollBreakStep) || new Point();
 
@@ -187,18 +261,6 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Converts a scroll step to a natural position. A natural position is a
-   * coordinate in the scroll target that excludes all scroll breaks.
-   *
-   * @param step - Scroll step.
-   *
-   * @return The corresponding natural position.
-   */
-  protected stepToNaturalPosition(step: Point | undefined): Point | undefined {
-    return this.virtualPositionToNaturalPosition(this.stepToVirtualPosition(step));
-  }
-
-  /**
    * Gets the horizontal scroll break at the specified scroll step on the
    * x-axis.
    *
@@ -206,7 +268,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The scroll break.
    */
-  protected getHorizontalScrollBreakAt(step: number): ScrollBreak | undefined {
+  private getHorizontalScrollBreakAt(step: number): ScrollBreak | undefined {
     if (isNaN(step)) return undefined;
     return (this.getScrollBreaks().x || []).find(val => val.step === step);
   }
@@ -218,7 +280,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The scroll break.
    */
-  protected getVerticalScrollBreakAt(step: number): ScrollBreak | undefined {
+  private getVerticalScrollBreakAt(step: number): ScrollBreak | undefined {
     if (isNaN(step)) return undefined;
     return (this.getScrollBreaks().y || []).find(val => val.step === step);
   }
@@ -231,7 +293,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The scroll break.
    */
-  protected getNearestHorizontalScrollBreakBefore(step: number): ScrollBreak | undefined {
+  private getNearestHorizontalScrollBreakBefore(step: number): ScrollBreak | undefined {
     if (isNaN(step)) return undefined;
 
     let out;
@@ -255,7 +317,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The scroll break.
    */
-  protected getNearestVerticalScrollBreakBefore(step: number): ScrollBreak | undefined {
+  private getNearestVerticalScrollBreakBefore(step: number): ScrollBreak | undefined {
     if (isNaN(step)) return undefined;
 
     let out;
@@ -279,7 +341,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The scroll break.
    */
-  protected getNearestHorizontalScrollBreakAfter(step: number): ScrollBreak | undefined {
+  private getNearestHorizontalScrollBreakAfter(step: number): ScrollBreak | undefined {
     if (isNaN(step)) return undefined;
 
     const scrollBreaks = this.getScrollBreaks().x || [];
@@ -301,7 +363,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The scroll break.
    */
-  protected getNearestVertticalScrollBreakAfter(step: number): ScrollBreak | undefined {
+  private getNearestVertticalScrollBreakAfter(step: number): ScrollBreak | undefined {
     if (isNaN(step)) return undefined;
 
     const scrollBreaks = this.getScrollBreaks().y || [];
@@ -320,7 +382,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The total of all horizontal scroll break lengths.
    */
-  protected aggregateHorizontalScrollBreaks(): number {
+  private aggregateHorizontalScrollBreaks(): number {
     return (this.getScrollBreaks().x || []).reduce((out, curr) => out + curr.length, 0);
   }
 
@@ -329,7 +391,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The total of all vertical scroll break lengths.
    */
-  protected aggregateVerticalScrollBreaks(): number {
+  private aggregateVerticalScrollBreaks(): number {
     return (this.getScrollBreaks().y || []).reduce((out, curr) => out + curr.length, 0);
   }
 
@@ -341,7 +403,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The resulting total scroll break lengths.
    */
-  protected aggregateHorizontalScrollBreaksBefore(step: number): number {
+  private aggregateHorizontalScrollBreaksBefore(step: number): number {
     if (isNaN(step)) return 0;
 
     return (this.getScrollBreaks().x || []).reduce((out, curr) => {
@@ -358,7 +420,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The resulting total scroll break lengths.
    */
-  protected aggregateVerticalScrollBreaksBefore(step: number): number {
+  private aggregateVerticalScrollBreaksBefore(step: number): number {
     if (isNaN(step)) return 0;
 
     return (this.getScrollBreaks().y || []).reduce((out, curr) => {
@@ -375,7 +437,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The resulting total scroll break lengths.
    */
-  protected aggregateHorizontalScrollBreaksAfter(step: number): number {
+  private aggregateHorizontalScrollBreaksAfter(step: number): number {
     if (isNaN(step)) return 0;
 
     return (this.getScrollBreaks().x || []).reduce((out, curr) => {
@@ -392,7 +454,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The resulting total scroll break lengths.
    */
-  protected aggregateVerticalScrollBreaksAfter(step: number): number {
+  private aggregateVerticalScrollBreaksAfter(step: number): number {
     if (isNaN(step)) return 0;
 
     return (this.getScrollBreaks().y || []).reduce((out, curr) => {
@@ -407,7 +469,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @return Descriptor of scroll breaks.
    */
   private getScrollBreaks(): ScrollBreakDescriptor {
-    if (!this.scrollBreakDescriptor) return {};
+    if (!this.scrollBreakGetter) return {};
 
     const refEl = this.eventTargetTable.scroll || window;
     const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
@@ -418,7 +480,7 @@ export default class ScrollDelegate extends UpdateDelegate {
 
     const refRectMax = refRectMin.clone({ x: refRectFull.width - refRect.width, y: refRectFull.height - refRect.height });
     const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
-    const val = this.scrollBreakDescriptor({
+    const val = this.scrollBreakGetter({
       minPos: new Point([refRectMin.left, refRectMin.top]),
       maxPos: new Point([refRectMax.left, refRectMax.top]),
       pos: new Point([refRect.left, refRect.top]),

@@ -3,8 +3,9 @@
  *       just a quick way during development to test the API.
  */
 
+import debug from 'debug';
 import { Rect } from 'spase';
-import { CrossScrollDelegate, DirtyInfo, DirtyType, EventType, ScrollDelegate } from '../../build';
+import { CrossScrollDelegate, DirtyInfo, DirtyType, ScrollDelegate } from '../../build';
 
 window.localStorage.debug = 'position,size,input';
 
@@ -14,44 +15,18 @@ const scrollDelegate = new ScrollDelegate({
   update(info: DirtyInfo) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
 
-    if (size) {
-      // debug('size')(size);
-    }
-
-    if (position) {
-      // debug('position')(position);
-    }
-
-    if (input) {
-      // debug('input')(input);
-    }
+    if (size) debug('size')(size);
+    if (position) debug('position')(position);
   },
-}, {
-  [EventType.SCROLL]: true,
-  [EventType.RESIZE]: true,
-  // [EventType.MOUSE_MOVE]: true,
 });
 
 const crossScrollDelegate = new CrossScrollDelegate({
   update(info: DirtyInfo) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
 
-    if (size) {
-      // debug('size')(size);
-    }
-
-    if (position) {
-      // debug('position')(position);
-    }
-
-    if (input) {
-      // debug('input')(input);
-    }
+    if (size) debug('size')(size);
+    if (position) debug('position')(position);
   },
-}, {
-  [EventType.SCROLL]: true,
-  [EventType.RESIZE]: true,
-  // [EventType.MOUSE_MOVE]: true,
 });
 
 scrollDelegate.scrollTarget = () => document.getElementById('main');

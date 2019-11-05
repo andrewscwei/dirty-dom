@@ -64,6 +64,16 @@ export default class ScrollDelegate extends UpdateDelegate {
     this.scrollContainerGetter = val;
   }
 
+  /**
+   * Creates a new ScrollDelegate instance.
+   *
+   * @param delegator - The object to create this scroll delegate for.
+   * @param descriptors - Map of responsive descriptors.
+   */
+  constructor(delegator: UpdateDelegator, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
+    super(delegator, descriptors);
+  }
+
   /** @inheritdoc */
   deinit() {
     super.deinit();

@@ -52,6 +52,7 @@ export default class UpdateDelegate {
   };
 
   protected dirtyInfo: DirtyInfo = {};
+  protected eventTargetTable: { [key: string]: Window | HTMLElement } = {};
 
   /**
    * Delegator of this instance.
@@ -79,7 +80,6 @@ export default class UpdateDelegate {
   /**
    * Cache.
    */
-  private eventTargetTable: { [key: string]: Window | HTMLElement } = {};
   private dirtyTable: number = 0;
   private responsivenessTable?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
 
@@ -222,8 +222,8 @@ export default class UpdateDelegate {
         ...this.dirtyInfo,
       };
 
-      this.updatePositionInfo(this.eventTargetTable.scroll);
       this.updateSizeInfo();
+      this.updatePositionInfo(this.eventTargetTable.scroll);
 
       break;
     default:

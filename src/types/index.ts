@@ -9,6 +9,16 @@ export interface UpdateDelegator {
   update: (info: DirtyInfo) => void;
 }
 
+export type ScrollBreakDescriptor = Readonly<{
+  x?: ScrollBreak[];
+  y?: ScrollBreak[];
+}>;
+
+export type ScrollBreak = Readonly<{
+  step: number;
+  length: number;
+}>;
+
 export interface ResponsiveDescriptor {
   /**
    * The DOM element or window to listen for events.

@@ -385,7 +385,7 @@ export default class UpdateDelegate {
         }
       }
 
-      this.delegator.update.call(this.delegator, nextInfo);
+      this.delegator.update.call(this.delegator, nextInfo, this);
     }
 
     // Reset the dirty info of all types.

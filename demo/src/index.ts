@@ -5,27 +5,24 @@
 
 import debug from 'debug';
 import { Rect } from 'spase';
-import { CrossScrollDelegate, DirtyInfo, DirtyType, ScrollDelegate } from '../../build';
+import { CrossScrollDelegate, DirtyInfo, DirtyType, ScrollDelegate, UpdateDelegate } from '../../build';
 
 window.localStorage.debug = 'position,size,input';
 
 const mainNode = document.getElementById('main');
 
 const scrollDelegate = new ScrollDelegate({
-  update(info: DirtyInfo) {
+  update(info: DirtyInfo, delegate: UpdateDelegate) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
 
-    if (size) debug('size')(size);
-    if (position) debug('position')(position);
-  },
-});
+    if (size) {
+      // debug('size')(size);
+    }
 
-const crossScrollDelegate = new CrossScrollDelegate({
-  update(info: DirtyInfo) {
-    const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
-
-    if (size) debug('size')(size);
-    if (position) debug('position')(position);
+    if (position) {
+      console.log((delegate as ScrollDelegate).getRelativeStepOfVerticalScrollBreakAt(0, position.step));
+      // debug('position')(position);
+    }
   },
 });
 
@@ -39,11 +36,26 @@ scrollDelegate.scrollBreaks = info => {
       step: (Rect.fromChildAt(1, mainNode)!.bottom - h) / info.maxPos.y,
       length: 1000,
     }, {
-      step: (Rect.fromChildAt(6, mainNode)!.bottom - h + 1000) / info.maxPos.y,
+      step: (Rect.fromChildAt(6, mainNode)!.bottom - h) / info.maxPos.y,
       length: 2000,
     }],
   };
 };
+
+const crossScrollDelegate = new CrossScrollDelegate({
+  update(info: DirtyInfo, delegate: UpdateDelegate) {
+    const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
+
+    if (size) {
+      debug('size')(size);
+    }
+
+    if (position) {
+      console.log((delegate as ScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
+      // debug('position')(position);
+    }
+  },
+});
 
 crossScrollDelegate.scrollTarget = () => document.getElementById('main');
 crossScrollDelegate.scrollContainer = () => document.getElementById('scroller');
@@ -52,10 +64,10 @@ crossScrollDelegate.scrollBreaks = info => {
 
   return {
     x: [{
-      step: (Rect.fromChildAt(1, mainNode)!.right - w) / info.maxPos.y,
+      step: (Rect.fromChildAt(1, mainNode)!.right - w) / info.maxPos.x,
       length: 1000,
     }, {
-      step: (Rect.fromChildAt(6, mainNode)!.right - w + 1000) / info.maxPos.y,
+      step: (Rect.fromChildAt(6, mainNode)!.right - w) / info.maxPos.x,
       length: 2000,
     }],
   };

@@ -41,7 +41,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * where the target holds its position still until the scroll break length
    * is surprassed.
    */
-  private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor;
+  private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point }) => ScrollBreakDescriptor;
 
   /**
    * Gets the minimum scroll position of the reference element.
@@ -59,9 +59,13 @@ export default class ScrollDelegate extends UpdateDelegate {
    */
   get maxPosition(): Point {
     const refEl = this.eventTargetTable.scroll || window;
-    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-    const refRectFull = Rect.from(refEl, { overflow: true }) || new Rect();
+    const refRect = typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl);
+    const refRectFull = Rect.from(refEl, { overflow: true });
+
+    if (!refRect || !refRectFull) return new Point([0, 0]);
+
     const refRectMax = refRect.clone({ x: refRectFull.width - refRect.width, y: refRectFull.height - refRect.height });
+
     return new Point([refRectMax.left, refRectMax.top]);
   }
 
@@ -73,11 +77,7 @@ export default class ScrollDelegate extends UpdateDelegate {
   get scrollTargetMinPosition(): Point | undefined {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
     if (!scrollTarget) return undefined;
-
-    return new Point({
-      x: scrollTarget.scrollLeft,
-      y: scrollTarget.scrollTop,
-    });
+    return new Point([0, 0]);
   }
 
   /**
@@ -95,7 +95,7 @@ export default class ScrollDelegate extends UpdateDelegate {
     const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
     if (!targetRectFull) return undefined;
 
-    const targetRectMax = targetRectFull.clone({ x: targetRectFull.width - targetRectMin.width + scrollTarget.scrollLeft, y: targetRectFull.height - targetRectMin.height + scrollTarget.scrollTop });
+    const targetRectMax = targetRectMin.clone({ x: targetRectFull.width - targetRectMin.width, y: targetRectFull.height - targetRectMin.height });
 
     return new Point({
       x: targetRectMax.left,
@@ -106,7 +106,7 @@ export default class ScrollDelegate extends UpdateDelegate {
   /**
    * Sets scroll breaks for this delegate.
    */
-  set scrollBreaks(val: (info: { minPos: Point, maxPos: Point, pos: Point, step: Point }) => ScrollBreakDescriptor) {
+  set scrollBreaks(val: (info: { minPos: Point, maxPos: Point }) => ScrollBreakDescriptor) {
     this.scrollBreakGetter = val;
   }
 
@@ -143,10 +143,141 @@ export default class ScrollDelegate extends UpdateDelegate {
     this.scrollBreakGetter = undefined;
   }
 
+  /**
+   * Gets the scroll step relative to a child in the scroll target.
+   *
+   * @param index - The index of the child in the scroll target.
+   * @param currStep - The current overall scroll step.
+   *
+   * @return The relative scroll step to the child.
+   */
+  getRelativeStepOfChildAt(index: number, currStep: Point): Point | undefined {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+    const rect = Rect.fromChildAt(index, scrollTarget);
+
+    if (!rect) return undefined;
+
+    return this.getRelativeStepOfRect(rect, currStep);
+  }
+
+  /**
+   * Gets the scroll step relative to a Rect in the scroll target.
+   *
+   * @param rect - The Rect in the scroll target.
+   * @param currStep - The current overall scroll step.
+   *
+   * @return The relative scroll step to the Rect.
+   */
+  getRelativeStepOfRect(rect: Rect, currStep: Point): Point | undefined {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+    const targetRectMin = Rect.from(scrollTarget);
+    const position = this.stepToNaturalPosition(currStep);
+
+    if (!scrollTarget || !targetRectMin || !position) return undefined;
+
+    let x = NaN;
+    let y = NaN;
+
+    if ((position.x + rect.width) <= rect.left) {
+      x = 0;
+    }
+    else if ((position.x + rect.width) >= rect.right) {
+      x = 1;
+    }
+    else {
+      x = ((position.x + rect.width) - rect.left) / (rect.right - rect.left);
+    }
+
+    if ((position.y + rect.height) <= rect.top) {
+      y = 0;
+    }
+    else if ((position.y + rect.height) >= rect.bottom) {
+      y = 1;
+    }
+    else {
+      y = ((position.y + rect.height) - rect.top) / (rect.bottom - rect.top);
+    }
+
+    return new Point({ x, y });
+  }
+
+  /**
+   * Gets the relative step of a horizontal scroll break at the provided index.
+   *
+   * @param index - Scroll break index.
+   * @param currStep - The current overall scroll step.
+   *
+   * @return The relative horizontal step.
+   */
+  getRelativeStepOfHorizontalScrollBreakAt(index: number, currStep: Point): number {
+    const { x: scrollBreaks } = this.getScrollBreaks();
+
+    if (!scrollBreaks) return NaN;
+    if (index < 0) return NaN;
+    if (index >= scrollBreaks.length) return NaN;
+
+    const maxPosition = this.scrollTargetMaxPosition;
+    if (!maxPosition) return NaN;
+
+    const position = this.stepToVirtualPosition(currStep);
+    if (!position) return NaN;
+
+    const scrollBreak = scrollBreaks[index];
+
+    const aggregatedLengths = scrollBreaks.reduce((out, curr) => {
+      if (curr.step < scrollBreak.step) return out + curr.length;
+      return out;
+    }, 0);
+
+    const min = scrollBreak.step * maxPosition.x + aggregatedLengths;
+    const max = min + scrollBreak.length;
+
+    if (position.x <= min) return 0;
+    if (position.x >= max) return 1;
+
+    return (position.x - min) / (max - min);
+  }
+
+  /**
+   * Gets the relative step of a vertical scroll break at the provided index.
+   *
+   * @param index - Scroll break index.
+   * @param currStep - The current overall scroll step.
+   *
+   * @return The relative vertical step.
+   */
+  getRelativeStepOfVerticalScrollBreakAt(index: number, currStep: Point): number {
+    const { y: scrollBreaks } = this.getScrollBreaks();
+
+    if (!scrollBreaks) return NaN;
+    if (index < 0) return NaN;
+    if (index >= scrollBreaks.length) return NaN;
+
+    const maxPosition = this.scrollTargetMaxPosition;
+    if (!maxPosition) return NaN;
+
+    const position = this.stepToVirtualPosition(currStep);
+    if (!position) return NaN;
+
+    const scrollBreak = scrollBreaks[index];
+
+    const aggregatedLengths = scrollBreaks.reduce((out, curr) => {
+      if (curr.step < scrollBreak.step) return out + curr.length;
+      return out;
+    }, 0);
+
+    const min = scrollBreak.step * maxPosition.y + aggregatedLengths;
+    const max = min + scrollBreak.length;
+
+    if (position.y <= min) return 0;
+    if (position.y >= max) return 1;
+
+    return (position.y - min) / (max - min);
+  }
+
   /** @inheritdoc */
   protected updateSizeInfo() {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
-
     if (!scrollTarget) return;
 
     const targetRectMin = Rect.from(scrollTarget);
@@ -218,18 +349,6 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Converts a scroll step to a natural position. A natural position is a
-   * coordinate in the scroll target that excludes all scroll breaks.
-   *
-   * @param step - Scroll step.
-   *
-   * @return The corresponding natural position.
-   */
-  protected stepToNaturalPosition(step: Point | undefined): Point | undefined {
-    return this.virtualPositionToNaturalPosition(this.stepToVirtualPosition(step));
-  }
-
-  /**
    * Converts a scroll step to a virtual position. A virtual position is a
    * coordinate in the scroll target that includes all scroll breaks.
    *
@@ -237,7 +356,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding virtual position.
    */
-  private stepToVirtualPosition(step: Point | undefined): Point | undefined {
+  protected stepToVirtualPosition(step: Point | undefined): Point | undefined {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
 
     if (!step || !scrollTarget) return undefined;
@@ -256,6 +375,18 @@ export default class ScrollDelegate extends UpdateDelegate {
     });
 
     return position;
+  }
+
+  /**
+   * Converts a scroll step to a natural position. A natural position is a
+   * coordinate in the scroll target that excludes all scroll breaks.
+   *
+   * @param step - Scroll step.
+   *
+   * @return The corresponding natural position.
+   */
+  private stepToNaturalPosition(step: Point | undefined): Point | undefined {
+    return this.virtualPositionToNaturalPosition(this.stepToVirtualPosition(step));
   }
 
   /**
@@ -298,143 +429,54 @@ export default class ScrollDelegate extends UpdateDelegate {
   private virtualPositionToNaturalPosition(position: Point | undefined): Point | undefined {
     if (!position) return undefined;
 
-    const step = this.virtualPositionToStep(position);
+    const maxPosition = this.scrollTargetMaxPosition;
+    if (!maxPosition) return undefined;
 
-    if (!step) return undefined;
+    const scrollBreaks = this.getScrollBreaks();
 
-    const horizontalScrollBreak = this.getHorizontalScrollBreakAt(step.x) || this.getNearestHorizontalScrollBreakBefore(step.x) || { step: 0, length: 0 };
-    const verticalScrollBreak = this.getVerticalScrollBreakAt(step.y) || this.getNearestVerticalScrollBreakBefore(step.y) || { step: 0, length: 0 };
-    const scrollBreakStep = new Point({ x: horizontalScrollBreak.step, y: verticalScrollBreak.step });
-    const scrollBreakPosition = this.stepToVirtualPosition(scrollBreakStep) || new Point();
+    let x = 0;
+    let y = 0;
 
-    const rawPosition = new Point({
-      x: position.x - this.aggregateHorizontalScrollBreaksBefore(step.x),
-      y: position.y - this.aggregateVerticalScrollBreaksBefore(step.y),
-    });
+    if (scrollBreaks.x) {
+      const ascScrollBreaks = [...scrollBreaks.x].sort((a, b) => a.step - b.step);
 
-    const normalizedPosition = new Point({
-      x: position.x > (scrollBreakPosition.x + horizontalScrollBreak.length) ? rawPosition.x : Math.min(rawPosition.x + horizontalScrollBreak.length, scrollBreakPosition.x - this.aggregateHorizontalScrollBreaksBefore(horizontalScrollBreak.step)),
-      y: position.y > (scrollBreakPosition.y + verticalScrollBreak.length) ? rawPosition.y : Math.min(rawPosition.y + verticalScrollBreak.length, scrollBreakPosition.y - this.aggregateVerticalScrollBreaksBefore(verticalScrollBreak.step)),
-    });
+      let aggregatedLength = 0;
 
-    return normalizedPosition;
-  }
+      for (const { step, length } of ascScrollBreaks) {
+        const minX = step * maxPosition.x + aggregatedLength;
+        const maxX = minX + length;
 
-  /**
-   * Gets the horizontal scroll break at the specified scroll step on the
-   * x-axis.
-   *
-   * @param step - The scroll step on the x-axis.
-   *
-   * @return The scroll break.
-   */
-  private getHorizontalScrollBreakAt(step: number): ScrollBreak | undefined {
-    if (isNaN(step)) return undefined;
-    return (this.getScrollBreaks().x || []).find(val => val.step === step);
-  }
+        if (position.x <= maxX) {
+          x = Math.min(position.x, minX) - aggregatedLength;
+          break;
+        }
 
-  /**
-   * Gets the vertical scroll break at the specified scroll step on the y-axis.
-   *
-   * @param step - The scroll step on the y-axis.
-   *
-   * @return The scroll break.
-   */
-  private getVerticalScrollBreakAt(step: number): ScrollBreak | undefined {
-    if (isNaN(step)) return undefined;
-    return (this.getScrollBreaks().y || []).find(val => val.step === step);
-  }
-
-  /**
-   * Gets the nearest horizontal scroll break before the provided step on the
-   * x-axis.
-   *
-   * @param step - The scroll step on the x-axis.
-   *
-   * @return The scroll break.
-   */
-  private getNearestHorizontalScrollBreakBefore(step: number): ScrollBreak | undefined {
-    if (isNaN(step)) return undefined;
-
-    let out;
-    const scrollBreaks = this.getScrollBreaks().x || [];
-    const n = scrollBreaks.length;
-
-    for (let i = 0; i < n; i++) {
-      const t = scrollBreaks[i];
-      if (t.step > step) break;
-      out = t;
+        aggregatedLength += length;
+        x = position.x - aggregatedLength;
+      }
     }
 
-    return out;
-  }
+    if (scrollBreaks.y) {
+      const ascScrollBreaks = [...scrollBreaks.y].sort((a, b) => a.step - b.step);
 
-  /**
-   * Gets the nearest vertical scroll break before the provided step on the
-   * y-axis.
-   *
-   * @param step - The scroll step on the y-axis.
-   *
-   * @return The scroll break.
-   */
-  private getNearestVerticalScrollBreakBefore(step: number): ScrollBreak | undefined {
-    if (isNaN(step)) return undefined;
+      let aggregatedLength = 0;
 
-    let out;
-    const scrollBreaks = this.getScrollBreaks().y || [];
-    const n = scrollBreaks.length;
+      for (const scrollBreak of ascScrollBreaks) {
+        const { step, length } = scrollBreak;
+        const minY = step * maxPosition.y + aggregatedLength;
+        const maxY = minY + length;
 
-    for (let i = 0; i < n; i++) {
-      const t = scrollBreaks[i];
-      if (t.step >= step) break;
-      out = t;
+        if (position.y <= maxY) {
+          y = Math.min(position.y, minY) - aggregatedLength;
+          break;
+        }
+
+        aggregatedLength += length;
+        y = position.y - aggregatedLength;
+      }
     }
 
-    return out;
-  }
-
-  /**
-   * Gets the nearest horizontal scroll break after the provided step on the
-   * x-axis.
-   *
-   * @param step - The scroll step on the x-axis.
-   *
-   * @return The scroll break.
-   */
-  private getNearestHorizontalScrollBreakAfter(step: number): ScrollBreak | undefined {
-    if (isNaN(step)) return undefined;
-
-    const scrollBreaks = this.getScrollBreaks().x || [];
-    const n = scrollBreaks.length;
-
-    for (let i = 0; i < n; i++) {
-      const t = scrollBreaks[i];
-      if (t.step > step) return t;
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Gets the nearest vertical scroll break after the provided step on the
-   * y-axis.
-   *
-   * @param step - The scroll step on the y-axis.
-   *
-   * @return The scroll break.
-   */
-  private getNearestVertticalScrollBreakAfter(step: number): ScrollBreak | undefined {
-    if (isNaN(step)) return undefined;
-
-    const scrollBreaks = this.getScrollBreaks().y || [];
-    const n = scrollBreaks.length;
-
-    for (let i = 0; i < n; i++) {
-      const t = scrollBreaks[i];
-      if (t.step > step) return t;
-    }
-
-    return undefined;
+    return new Point({ x, y });
   }
 
   /**
@@ -455,72 +497,84 @@ export default class ScrollDelegate extends UpdateDelegate {
     return (this.getScrollBreaks().y || []).reduce((out, curr) => out + curr.length, 0);
   }
 
-  /**
-   * Adds up and returns the total of all horizontal scroll break lengths
-   * before the specified scroll step.
-   *
-   * @param step - The scroll step on the x-axis.
-   *
-   * @return The resulting total scroll break lengths.
-   */
-  private aggregateHorizontalScrollBreaksBefore(step: number): number {
-    if (isNaN(step)) return 0;
+  private aggregateVerticalScrollBreaksBeforeBreakStep(step: number): number {
+    const { y: scrollBreaks } = this.getScrollBreaks();
 
-    return (this.getScrollBreaks().x || []).reduce((out, curr) => {
-      if (curr.step < step) return out + curr.length;
-      return out;
-    }, 0);
+    if (!scrollBreaks) return 0;
+
+    const ascScrollBreaks = [...scrollBreaks].sort((a, b) => a.step - b.step);
+    const maxPosition = this.scrollTargetMaxPosition;
+
+    if (!maxPosition) return 0;
+
+    const n = ascScrollBreaks.length;
+
+    let aggregatedLength = 0;
+
+    for (let i = 0; i < n; i++) {
+      const scrollBreak = ascScrollBreaks[i];
+      const minY = scrollBreak.step * maxPosition.y + aggregatedLength;
+      const maxY = minY + scrollBreak.length;
+
+      if ((step * maxPosition.y) <= minY) break;
+
+      aggregatedLength += scrollBreak.length;
+    }
+
+    return aggregatedLength;
   }
 
   /**
-   * Adds up and returns the total of all vertical scroll break lengths before
-   * the specified scroll step.
+   * Finds the nearest horizontal scroll break defined for this delegate without
+   * exceeding the provided virtual x-position.
    *
-   * @param step - The scroll step on the y-axis.
+   * @param position - The virtual x-position.
    *
-   * @return The resulting total scroll break lengths.
+   * @return The nearest vertical scroll break.
    */
-  private aggregateVerticalScrollBreaksBefore(step: number): number {
-    if (isNaN(step)) return 0;
+  private findNearestHorizontalScrollBreakByVirtualPosition(position: number): ScrollBreak {
+    const zero = { step: 0, length: 0 };
 
-    return (this.getScrollBreaks().y || []).reduce((out, curr) => {
-      if (curr.step < step) return out + curr.length;
-      return out;
-    }, 0);
+    return zero;
   }
 
   /**
-   * Adds up and returns the total of all horizontal scroll break lengths
-   * after the specified scroll step.
+   * Finds the nearest vertical scroll break defined for this delegate without
+   * exceeding the provided virtual y-position.
    *
-   * @param step - The scroll step on the x-axis.
+   * @param position - The virtual y-position.
    *
-   * @return The resulting total scroll break lengths.
+   * @return The nearest vertical scroll break.
    */
-  private aggregateHorizontalScrollBreaksAfter(step: number): number {
-    if (isNaN(step)) return 0;
+  private findNearestVerticalScrollBreakByVirtualPosition(position: number): ScrollBreak {
+    const zero = { step: 0, length: 0 };
+    const { y: scrollBreaks } = this.getScrollBreaks();
 
-    return (this.getScrollBreaks().x || []).reduce((out, curr) => {
-      if (step > curr.step) return out + curr.length;
-      return out;
-    }, 0);
-  }
+    if (!scrollBreaks) return zero;
 
-  /**
-   * Adds up and returns the total of all vertical scroll break lengths after
-   * the specified scroll step.
-   *
-   * @param step - The scroll step on the y-axis.
-   *
-   * @return The resulting total scroll break lengths.
-   */
-  private aggregateVerticalScrollBreaksAfter(step: number): number {
-    if (isNaN(step)) return 0;
+    const ascScrollBreaks = [...scrollBreaks].sort((a, b) => a.step - b.step);
+    const maxPosition = this.scrollTargetMaxPosition;
 
-    return (this.getScrollBreaks().y || []).reduce((out, curr) => {
-      if (step > curr.step) return out + curr.length;
-      return out;
-    }, 0);
+    if (!maxPosition) return zero;
+
+    const n = ascScrollBreaks.length;
+
+    let aggregatedLength = 0;
+    let index = -1;
+
+    for (let i = 0; i < n; i++) {
+      const { step, length } = ascScrollBreaks[i];
+      const minY = step * maxPosition.y + aggregatedLength;
+
+      if (position < minY) break;
+
+      aggregatedLength += length;
+      index++;
+    }
+
+    if (index < 0) return zero;
+
+    return ascScrollBreaks[index];
   }
 
   /**
@@ -531,25 +585,11 @@ export default class ScrollDelegate extends UpdateDelegate {
   private getScrollBreaks(): ScrollBreakDescriptor {
     if (!this.scrollBreakGetter) return {};
 
-    const refEl = this.eventTargetTable.scroll || window;
-    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }));
-    const refRectMin = refRect.clone({ x: 0, y: 0 });
-    const refRectFull = Rect.from(refEl, { overflow: true });
+    const minPos = this.scrollTargetMinPosition;
+    const maxPos = this.scrollTargetMaxPosition;
 
-    if (!refRectFull) return {};
+    if (!minPos || !maxPos) return {};
 
-    const refRectMax = refRectMin.clone({ x: refRectFull.width - refRect.width, y: refRectFull.height - refRect.height });
-    const step = new Point([refRect.left / refRectMax.left, refRect.top / refRectMax.top]);
-    const val = this.scrollBreakGetter({
-      minPos: new Point([refRectMin.left, refRectMin.top]),
-      maxPos: new Point([refRectMax.left, refRectMax.top]),
-      pos: new Point([refRect.left, refRect.top]),
-      step,
-    });
-
-    return {
-      x: [...val.x || []].sort((a, b) => a.step - b.step),
-      y: [...val.y || []].sort((a, b) => a.step - b.step),
-    };
+    return this.scrollBreakGetter({ minPos, maxPos });
   }
 }

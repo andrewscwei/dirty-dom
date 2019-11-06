@@ -1,3 +1,4 @@
+import UpdateDelegate from '../core/UpdateDelegate';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
 
@@ -6,7 +7,7 @@ export type DirtyInfo = {
 };
 
 export interface UpdateDelegator {
-  update: (info: DirtyInfo) => void;
+  update: (info: DirtyInfo, delegate: UpdateDelegate) => void;
 }
 
 export type ScrollBreakDescriptor = Readonly<{

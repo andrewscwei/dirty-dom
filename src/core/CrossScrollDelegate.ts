@@ -3,8 +3,8 @@ import ScrollDelegate from './ScrollDelegate';
 
 export default class CrossScrollDelegate extends ScrollDelegate {
   /** @inheritdoc */
-  protected stepToNaturalPosition(step: Point) {
-    return super.stepToNaturalPosition(step.invert());
+  protected stepToVirtualPosition(step: Point) {
+    return super.stepToVirtualPosition(step.invert());
   }
 
   /** @inheritdoc */

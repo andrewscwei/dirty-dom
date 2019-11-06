@@ -434,8 +434,8 @@ export default class ScrollDelegate extends UpdateDelegate {
 
     const scrollBreaks = this.getScrollBreaks();
 
-    let x = 0;
-    let y = 0;
+    let x = position.x;
+    let y = position.y;
 
     if (scrollBreaks.x) {
       const ascScrollBreaks = [...scrollBreaks.x].sort((a, b) => a.step - b.step);

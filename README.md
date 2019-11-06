@@ -161,5 +161,6 @@ class Foo {
 
 ### `v2.0.0`
 
+- `UpdateDelegate` no longer starts automatically, you must manually invoke `init()`
 - Added `ScrollDelegate` and `CrossScrollDelegate`
 - Added dirty info for `DirtyType.POSITION` and `DirtyType.SIZE`

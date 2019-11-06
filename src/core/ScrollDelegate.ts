@@ -178,24 +178,24 @@ export default class ScrollDelegate extends UpdateDelegate {
     let x = NaN;
     let y = NaN;
 
-    if ((position.x + rect.width) <= rect.left) {
+    if ((position.x + targetRectMin.width) <= rect.left) {
       x = 0;
     }
-    else if ((position.x + rect.width) >= rect.right) {
+    else if ((position.x + targetRectMin.width) >= rect.right) {
       x = 1;
     }
     else {
-      x = ((position.x + rect.width) - rect.left) / (rect.right - rect.left);
+      x = ((position.x + targetRectMin.width) - rect.left) / (rect.right - rect.left);
     }
 
-    if ((position.y + rect.height) <= rect.top) {
+    if ((position.y + targetRectMin.height) <= rect.top) {
       y = 0;
     }
-    else if ((position.y + rect.height) >= rect.bottom) {
+    else if ((position.y + targetRectMin.height) >= rect.bottom) {
       y = 1;
     }
     else {
-      y = ((position.y + rect.height) - rect.top) / (rect.bottom - rect.top);
+      y = ((position.y + targetRectMin.height) - rect.top) / (rect.bottom - rect.top);
     }
 
     return new Point({ x, y });

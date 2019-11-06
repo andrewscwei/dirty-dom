@@ -70,11 +70,29 @@ class Foo {
     if (info[DirtyType.POSITION]) {
       // Triggered if manually marked as dirty or whenever the window or an
       // element scrolls, if enabled on init.
+
+      console.log(info[DirtyType.POSITION]);
+
+      // Prints:
+      // {
+      //   minPos: _,
+      //   maxPos: _,
+      //   pos: _,
+      //   step: _,
+      // }
     }
 
     if (info[DirtyType.SIZE]) {
       // Triggered if manually marked as dirty or whenever the window resizes,
       // if enabled on init.
+
+      console.log(info[DirtyType.SIZE]);
+
+      // Prints:
+      // {
+      //   minSize: _,
+      //   maxSize: _,
+      // }
     }
 
     if (info[DirtyType.LAYOUT]) {
@@ -138,3 +156,10 @@ class Foo {
     }
 }
 ```
+
+## Release Notes
+
+### `v2.0.0`
+
+- Added `ScrollDelegate` and `CrossScrollDelegate`
+- Added dirty info for `DirtyType.POSITION` and `DirtyType.SIZE`

@@ -1,4 +1,5 @@
 import { Point, Rect, Size } from 'spase';
+import { PointDescriptor } from 'spase/build/core/Point';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
 import { DirtyInfo, ResponsiveDescriptor, ScrollBreak, ScrollBreakDescriptor, typeIsWindow, UpdateDelegator } from '../types';
@@ -42,15 +43,6 @@ export default class ScrollDelegate extends UpdateDelegate {
    * is surprassed.
    */
   private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point }) => ScrollBreakDescriptor;
-
-  /**
-   * Gets the current viewport Rect of the window.
-   *
-   * @return Viewport Rect.
-   */
-  get viewport(): Rect {
-    return Rect.fromViewport();
-  }
 
   /**
    * Gets the minimum scroll position of the reference element.
@@ -172,13 +164,14 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The relative scroll step to the child.
    */
-  getRelativeStepOfChildAt(index: number, currStep: Point): Point | null {
+  getRelativeStepOfChildAt(index: number, currStep: Point | PointDescriptor): Point | null {
+    const step = currStep instanceof Point ? currStep : new Point(currStep);
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
     const rect = Rect.fromChildAt(index, scrollTarget);
 
     if (!rect) return null;
 
-    return this.getRelativeStepOfRect(rect, currStep);
+    return this.getRelativeStepOfRect(rect, step);
   }
 
   /**
@@ -189,10 +182,11 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The relative scroll step to the Rect.
    */
-  getRelativeStepOfRect(rect: Rect, currStep: Point): Point | null {
+  getRelativeStepOfRect(rect: Rect, currStep: Point | PointDescriptor): Point | null {
+    const step = currStep instanceof Point ? currStep : new Point(currStep);
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
     const targetRectMin = Rect.from(scrollTarget);
-    const position = this.stepToNaturalPosition(currStep);
+    const position = this.stepToNaturalPosition(step);
 
     if (!scrollTarget || !targetRectMin || !position) return null;
 
@@ -230,7 +224,8 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The relative horizontal step.
    */
-  getRelativeStepOfHorizontalScrollBreakAt(index: number, currStep: Point): number {
+  getRelativeStepOfHorizontalScrollBreakAt(index: number, currStep: Point | PointDescriptor): number {
+    const step = currStep instanceof Point ? currStep : new Point(currStep);
     const { x: scrollBreaks } = this.getScrollBreaks();
 
     if (!scrollBreaks) return NaN;
@@ -240,7 +235,7 @@ export default class ScrollDelegate extends UpdateDelegate {
     const maxPosition = this.scrollTargetMaxPosition;
     if (!maxPosition) return NaN;
 
-    const position = this.stepToVirtualPosition(currStep);
+    const position = this.stepToVirtualPosition(step);
     if (!position) return NaN;
 
     const scrollBreak = scrollBreaks[index];
@@ -267,7 +262,8 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The relative vertical step.
    */
-  getRelativeStepOfVerticalScrollBreakAt(index: number, currStep: Point): number {
+  getRelativeStepOfVerticalScrollBreakAt(index: number, currStep: Point | PointDescriptor): number {
+    const step = currStep instanceof Point ? currStep : new Point(currStep);
     const { y: scrollBreaks } = this.getScrollBreaks();
 
     if (!scrollBreaks) return NaN;
@@ -277,7 +273,7 @@ export default class ScrollDelegate extends UpdateDelegate {
     const maxPosition = this.scrollTargetMaxPosition;
     if (!maxPosition) return NaN;
 
-    const position = this.stepToVirtualPosition(currStep);
+    const position = this.stepToVirtualPosition(step);
     if (!position) return NaN;
 
     const scrollBreak = scrollBreaks[index];

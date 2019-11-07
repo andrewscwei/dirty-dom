@@ -84,6 +84,15 @@ export default class UpdateDelegate {
   private responsivenessTable?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
 
   /**
+   * Gets the current viewport Rect of the window.
+   *
+   * @return Viewport Rect.
+   */
+  get viewport(): Rect {
+    return Rect.fromViewport();
+  }
+
+  /**
    * Creates a new UpdateDelegate instance.
    *
    * @param delegator - The object to create this update delegate for.

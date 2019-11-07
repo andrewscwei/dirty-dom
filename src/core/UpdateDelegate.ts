@@ -401,6 +401,7 @@ export default class UpdateDelegate {
    */
   private onWindowResize(event: Event) {
     this.updateSizeInfo();
+    this.updatePositionInfo();
     this.setDirty(DirtyType.SIZE);
   }
 

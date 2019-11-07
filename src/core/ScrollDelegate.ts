@@ -44,6 +44,15 @@ export default class ScrollDelegate extends UpdateDelegate {
   private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point }) => ScrollBreakDescriptor;
 
   /**
+   * Gets the current viewport Rect of the window.
+   *
+   * @return Viewport Rect.
+   */
+  get viewport(): Rect {
+    return Rect.fromViewport();
+  }
+
+  /**
    * Gets the minimum scroll position of the reference element.
    *
    * @return Minimum scroll position.
@@ -59,7 +68,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    */
   get maxPosition(): Point {
     const refEl = this.eventTargetTable.scroll || window;
-    const refRect = typeIsWindow(refEl) ? Rect.fromViewport() : Rect.from(refEl);
+    const refRect = typeIsWindow(refEl) ? this.viewport : Rect.from(refEl);
     const refRectFull = Rect.from(refEl, { overflow: true });
 
     if (!refRect || !refRectFull) return new Point([0, 0]);
@@ -74,9 +83,9 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return Minimum postiion of the scroll target.
    */
-  get scrollTargetMinPosition(): Point | undefined {
+  get scrollTargetMinPosition(): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
-    if (!scrollTarget) return undefined;
+    if (!scrollTarget) return null;
     return new Point([0, 0]);
   }
 
@@ -85,15 +94,15 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return Maximum position of the scroll target.
    */
-  get scrollTargetMaxPosition(): Point | undefined {
+  get scrollTargetMaxPosition(): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
-    if (!scrollTarget) return undefined;
+    if (!scrollTarget) return null;
 
     const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false });
-    if (!targetRectMin) return undefined;
+    if (!targetRectMin) return null;
 
     const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
-    if (!targetRectFull) return undefined;
+    if (!targetRectFull) return null;
 
     const targetRectMax = targetRectMin.clone({ x: targetRectFull.width - targetRectMin.width, y: targetRectFull.height - targetRectMin.height });
 
@@ -144,6 +153,18 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
+   * Gets the Rect of a child relative to the scroll target.
+   *
+   * @param index - Index of the child.
+   *
+   * @return The relative Rect.
+   */
+  getRelativeRectOfChildAt(index: number): Rect | null {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
+    return Rect.fromChildAt(index, scrollTarget);
+  }
+
+  /**
    * Gets the scroll step relative to a child in the scroll target.
    *
    * @param index - The index of the child in the scroll target.
@@ -151,11 +172,11 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The relative scroll step to the child.
    */
-  getRelativeStepOfChildAt(index: number, currStep: Point): Point | undefined {
+  getRelativeStepOfChildAt(index: number, currStep: Point): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
     const rect = Rect.fromChildAt(index, scrollTarget);
 
-    if (!rect) return undefined;
+    if (!rect) return null;
 
     return this.getRelativeStepOfRect(rect, currStep);
   }
@@ -168,12 +189,12 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The relative scroll step to the Rect.
    */
-  getRelativeStepOfRect(rect: Rect, currStep: Point): Point | undefined {
+  getRelativeStepOfRect(rect: Rect, currStep: Point): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
     const targetRectMin = Rect.from(scrollTarget);
     const position = this.stepToNaturalPosition(currStep);
 
-    if (!scrollTarget || !targetRectMin || !position) return undefined;
+    if (!scrollTarget || !targetRectMin || !position) return null;
 
     let x = NaN;
     let y = NaN;
@@ -356,16 +377,16 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding virtual position.
    */
-  protected stepToVirtualPosition(step: Point | undefined): Point | undefined {
+  protected stepToVirtualPosition(step?: Point): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
 
-    if (!step || !scrollTarget) return undefined;
+    if (!step || !scrollTarget) return null;
 
     const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
     const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
     const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
 
-    if (!targetRectFull) return undefined;
+    if (!targetRectFull) return null;
 
     const targetRectFullWithScrollBreaks = Rect.fromPointAndSize(new Point([0, 0]), targetRectFull.size.add(aggregatedScrollBreaks));
 
@@ -385,8 +406,10 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding natural position.
    */
-  private stepToNaturalPosition(step: Point | undefined): Point | undefined {
-    return this.virtualPositionToNaturalPosition(this.stepToVirtualPosition(step));
+  private stepToNaturalPosition(step?: Point): Point | null {
+    const virtualPosition = this.stepToVirtualPosition(step);
+    if (!virtualPosition) return null;
+    return this.virtualPositionToNaturalPosition(virtualPosition);
   }
 
   /**
@@ -397,16 +420,16 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding scroll step.
    */
-  private virtualPositionToStep(position: Point | undefined): Point | undefined {
+  private virtualPositionToStep(position?: Point): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
 
-    if (!position || !scrollTarget) return undefined;
+    if (!position || !scrollTarget) return null;
 
     const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false })!.clone({ x: 0, y: 0});
     const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true });
     const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()]);
 
-    if (!targetRectFull) return undefined;
+    if (!targetRectFull) return null;
 
     const targetRectFullWithScrollBreaks = Rect.fromPointAndSize(new Point([0, 0]), targetRectFull.size.add(aggregatedScrollBreaks));
 
@@ -426,11 +449,11 @@ export default class ScrollDelegate extends UpdateDelegate {
    *
    * @return The corresponding natural position.
    */
-  private virtualPositionToNaturalPosition(position: Point | undefined): Point | undefined {
-    if (!position) return undefined;
+  private virtualPositionToNaturalPosition(position?: Point): Point | null {
+    if (!position) return null;
 
     const maxPosition = this.scrollTargetMaxPosition;
-    if (!maxPosition) return undefined;
+    if (!maxPosition) return null;
 
     const scrollBreaks = this.getScrollBreaks();
 

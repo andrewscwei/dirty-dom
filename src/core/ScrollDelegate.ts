@@ -153,7 +153,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    */
   getRelativeStepOfChildAt(index: number, currStep: Point): Point | undefined {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter();
-    const rect = Rect.fromChildAt(index, scrollTarget);
+    const rect = Rect.fromChildAt(index, scrollTarget, { reference: scrollTarget });
 
     if (!rect) return undefined;
 

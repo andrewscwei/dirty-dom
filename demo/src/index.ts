@@ -64,14 +64,14 @@ crossScrollDelegate.scrollBreaks = info => {
 
   return {
     x: [{
-      step: (Rect.fromChildAt(1, mainNode)!.right - w) / info.maxPos.x,
+      step: (Rect.fromChildAt(1, mainNode, { reference: mainNode })!.right - w) / info.maxPos.x,
       length: 1000,
     }, {
-      step: (Rect.fromChildAt(6, mainNode)!.right - w) / info.maxPos.x,
+      step: (Rect.fromChildAt(6, mainNode, { reference: mainNode })!.right - w) / info.maxPos.x,
       length: 2000,
     }],
   };
 };
 
-scrollDelegate.init();
-// crossScrollDelegate.init();
+// scrollDelegate.init();
+crossScrollDelegate.init();

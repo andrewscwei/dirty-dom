@@ -1,6 +1,6 @@
 {
   "name": "@andrewscwei/dirty",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "Micro library for handling dirty DOM updates",
   "main": "build/index.js",
   "scripts": {

@@ -11,7 +11,6 @@ const config: Configuration = {
   entry: {
     bundle: path.join(inputDir, 'index.ts'),
   },
-  mode: 'development',
   module: {
     rules: [{
       test: /\.ts$/,
@@ -23,7 +22,7 @@ const config: Configuration = {
   output: {
     filename: '[name].js',
     path: outputDir,
-    publicPath: '/',
+    publicPath: process.env.NODE_ENV === 'development' ? '/' : './',
     sourceMapFilename: '[file].map',
   },
   plugins: [

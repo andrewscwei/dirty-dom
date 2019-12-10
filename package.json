@@ -1,6 +1,6 @@
 {
   "name": "@andrewscwei/dirty",
-  "version": "2.13.0",
+  "version": "2.14.0",
   "description": "Micro library for handling dirty DOM updates",
   "main": "build/index.js",
   "scripts": {
@@ -27,34 +27,34 @@
     "build"
   ],
   "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@babel/preset-env": "^7.7.1",
-    "@babel/preset-typescript": "^7.7.2",
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "@babel/preset-typescript": "^7.7.4",
     "@types/compression-webpack-plugin": "^2.0.1",
     "@types/debug": "^4.1.5",
     "@types/html-webpack-plugin": "^3.2.1",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.11",
+    "@types/node": "^12.12.16",
     "@types/webpack": "^4.41.0",
     "@types/webpack-env": "^1.14.1",
     "@types/webpack-node-externals": "^1.7.0",
     "babel-loader": "^8.0.6",
-    "compression-webpack-plugin": "^3.0.0",
+    "compression-webpack-plugin": "^3.0.1",
     "debug": "^4.1.1",
     "html-webpack-plugin": "^3.2.0",
     "mocha": "^6.2.2",
     "rimraf": "^3.0.0",
     "ts-loader": "^6.2.1",
-    "ts-node": "^8.5.2",
+    "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
-    "typescript": "^3.7.2",
+    "typescript": "^3.7.3",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0",
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "spase": "^3.14.0"
+    "spase": "^3.20.0"
   },
   "types": "build/index.d.ts"
 }

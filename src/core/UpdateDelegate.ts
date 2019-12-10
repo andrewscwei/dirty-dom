@@ -236,6 +236,10 @@ export default class UpdateDelegate {
 
       break;
     default:
+      if (!this.dirtyInfo[dirtyType]) {
+        this.dirtyInfo[dirtyType] = ((this.constructor as any).DEFAULT_DIRTY_INFO)[dirtyType];
+      }
+
       this.dirtyTable |= dirtyType;
     }
 

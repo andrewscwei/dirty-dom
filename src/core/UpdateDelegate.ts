@@ -35,10 +35,8 @@ export default class UpdateDelegate {
     [DirtyType.CONFIG]: {},
     [DirtyType.STYLE]: {},
     [DirtyType.INPUT]: {
-      mouseX: NaN,
-      mouseY: NaN,
-      mouseWheelX: NaN,
-      mouseWheelY: NaN,
+      mouse: undefined,
+      mouseWheel: undefined,
       keyUp: [],
       keyDown: [],
       keyPress: [],
@@ -435,8 +433,7 @@ export default class UpdateDelegate {
   private onWindowMouseMove(event: MouseEvent) {
     this.dirtyInfo[DirtyType.INPUT] = {
       ...this.dirtyInfo[DirtyType.INPUT] || {},
-      mouseX: event.clientX,
-      mouseY: event.clientY,
+      mouse: new Point([event.clientX, event.clientY]),
     };
 
     this.setDirty(DirtyType.INPUT);
@@ -450,8 +447,7 @@ export default class UpdateDelegate {
   private onWindowMouseWheel(event: MouseWheelEvent) {
     this.dirtyInfo[DirtyType.INPUT] = {
       ...this.dirtyInfo[DirtyType.INPUT] || {},
-      mouseWheelX: event.deltaX,
-      mouseWheelY: event.deltaY,
+      mouseWheel: new Point([event.deltaX, event.deltaY]),
     };
 
     this.setDirty(DirtyType.INPUT);

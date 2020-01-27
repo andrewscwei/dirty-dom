@@ -130,10 +130,8 @@ class Foo {
       //   keyUp: [...keyCodes],
       //   keyDown: [...keyCodes],
       //   keyPress: [...keyCodes],
-      //   mouseX: _,
-      //   mouseY: _,
-      //   mouseWheelX: _,
-      //   mouseWheelY: _,
+      //   mouse: _,
+      //   mouseWheel: _,
       // }
     }
 
@@ -158,6 +156,10 @@ class Foo {
 ```
 
 ## Release Notes
+
+### `v3.0.0`
+
+- **BREAKING**: Dirty info API for `DirtyType.INPUT` changed. Instead of `mouseX`, `mouseY`, `mouseWheelX` and `mouseWheelY`, it's now just `mouse` and `mousewheel` where each is an instance of `Point`.
 
 ### `v2.0.0`
 

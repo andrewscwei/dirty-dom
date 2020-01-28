@@ -151,17 +151,17 @@ export default class UpdateDelegate {
     }
 
     if (this.scrollHandler) {
-      const target = this.eventTargetTable.scroll || window;
+      const target = this.eventTargetTable.scroll ?? window;
       target.removeEventListener('scroll', this.scrollHandler);
     }
 
     if (this.mouseWheelHandler) {
-      const target = this.eventTargetTable.mouseWheel || window;
+      const target = this.eventTargetTable.mouseWheel ?? window;
       target.removeEventListener('wheel', this.mouseWheelHandler);
     }
 
     if (this.mouseMoveHandler) {
-      const target = this.eventTargetTable.mouseMove || window;
+      const target = this.eventTargetTable.mouseMove ?? window;
       target.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 

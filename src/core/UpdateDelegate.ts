@@ -1,5 +1,3 @@
-// © Andrew Wei
-
 import { Point, Rect } from 'spase';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
@@ -50,25 +48,13 @@ export default class UpdateDelegate {
   };
 
   protected dirtyInfo: DirtyInfo = {};
-  protected eventTargetTable: { [key: string]: Window | HTMLElement } = {};
+  protected eventTargetDict: { [key in EventType]?: Window | HTMLElement } = {};
+  protected eventHandlerDict: { [key in EventType]?: EventListener | number } = {};
 
   /**
    * Delegator of this instance.
    */
-  private delegator: UpdateDelegator;
-
-  /**
-   * Event handlers.
-   */
-  private resizeHandler?: EventListener;
-  private orientationChangeHandler?: EventListener;
-  private scrollHandler?: EventListener;
-  private mouseMoveHandler?: EventListener;
-  private mouseWheelHandler?: EventListener;
-  private keyUpHandler?: EventListener;
-  private keyDownHandler?: EventListener;
-  private keyPressHandler?: EventListener;
-  private enterFrameHandler?: number;
+  protected delegator: UpdateDelegator;
 
   /**
    * Animation frame tracker.
@@ -145,48 +131,40 @@ export default class UpdateDelegate {
       cancelAnimationFrame(this.pendingAnimationFrame);
     }
 
-    if (this.resizeHandler) {
-      window.removeEventListener('resize', this.resizeHandler);
-      window.removeEventListener('orientationchange', this.resizeHandler);
+    if (this.eventHandlerDict[EventType.RESIZE]) {
+      window.removeEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+      window.removeEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
     }
 
-    if (this.scrollHandler) {
-      const target = this.eventTargetTable.scroll ?? window;
-      target.removeEventListener('scroll', this.scrollHandler);
+    if (this.eventHandlerDict[EventType.SCROLL]) {
+      const target = this.eventTargetDict[EventType.SCROLL] ?? window;
+      target.removeEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener);
     }
 
-    if (this.mouseWheelHandler) {
-      const target = this.eventTargetTable.mouseWheel ?? window;
-      target.removeEventListener('wheel', this.mouseWheelHandler);
+    if (this.eventHandlerDict[EventType.MOUSE_WHEEL]) {
+      const target = this.eventTargetDict[EventType.MOUSE_WHEEL] ?? window;
+      target.removeEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener);
     }
 
-    if (this.mouseMoveHandler) {
-      const target = this.eventTargetTable.mouseMove ?? window;
-      target.removeEventListener('mousemove', this.mouseMoveHandler);
+    if (this.eventHandlerDict[EventType.MOUSE_MOVE]) {
+      const target = this.eventTargetDict[EventType.MOUSE_MOVE] ?? window;
+      target.removeEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener);
     }
 
-    if (this.orientationChangeHandler) {
+    if (this.eventHandlerDict[EventType.ORIENTATION_CHANGE]) {
       const win = window as any;
-      if (win.DeviceOrientationEvent) window.removeEventListener('deviceorientation', this.orientationChangeHandler);
-      else if (win.DeviceMotionEvent) window.removeEventListener('devicemotion', this.orientationChangeHandler);
+      if (win.DeviceOrientationEvent) window.removeEventListener('deviceorientation', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
+      else if (win.DeviceMotionEvent) window.removeEventListener('devicemotion', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
     }
 
-    if (this.keyDownHandler) window.removeEventListener('keydown', this.keyDownHandler);
-    if (this.keyPressHandler) window.removeEventListener('keypress', this.keyPressHandler);
-    if (this.keyUpHandler) window.removeEventListener('keyup', this.keyUpHandler);
-    if (this.enterFrameHandler !== undefined) window.clearInterval(this.enterFrameHandler);
+    if (this.eventHandlerDict[EventType.KEY_DOWN]) window.removeEventListener('keydown', this.eventHandlerDict[EventType.KEY_DOWN] as EventListener);
+    if (this.eventHandlerDict[EventType.KEY_PRESS]) window.removeEventListener('keypress', this.eventHandlerDict[EventType.KEY_PRESS] as EventListener);
+    if (this.eventHandlerDict[EventType.KEY_UP]) window.removeEventListener('keyup', this.eventHandlerDict[EventType.KEY_UP] as EventListener);
+    if (this.eventHandlerDict[EventType.ENTER_FRAME] !== undefined) window.clearInterval(this.eventHandlerDict[EventType.ENTER_FRAME] as number);
 
     this.pendingAnimationFrame = undefined;
-    this.resizeHandler = undefined;
-    this.scrollHandler = undefined;
-    this.mouseWheelHandler = undefined;
-    this.mouseMoveHandler = undefined;
-    this.orientationChangeHandler = undefined;
-    this.keyDownHandler = undefined;
-    this.keyPressHandler = undefined;
-    this.keyUpHandler = undefined;
-    this.enterFrameHandler = undefined;
-    this.eventTargetTable = {};
+    this.eventTargetDict = {};
+    this.eventHandlerDict = {};
   }
 
   /**
@@ -230,7 +208,7 @@ export default class UpdateDelegate {
       };
 
       this.updateSizeInfo();
-      this.updatePositionInfo(this.eventTargetTable.scroll);
+      this.updatePositionInfo(this.eventTargetDict[EventType.SCROLL]);
 
       break;
     default:
@@ -307,73 +285,73 @@ export default class UpdateDelegate {
     const isUniversal = eventTypes.length === 0;
 
     if (isUniversal || eventTypes.indexOf(EventType.RESIZE) > -1 || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
-      if (this.resizeHandler) {
-        window.removeEventListener('resize', this.resizeHandler);
-        window.removeEventListener('orientationchange', this.resizeHandler);
+      if (this.eventHandlerDict[EventType.RESIZE]) {
+        window.removeEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+        window.removeEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
       }
 
-      this.resizeHandler = (refreshRate === 0.0) ? this.onWindowResize.bind(this) : debounce(this.onWindowResize.bind(this), refreshRate);
+      this.eventHandlerDict[EventType.RESIZE] = (refreshRate === 0.0) ? this.onWindowResize.bind(this) : debounce(this.onWindowResize.bind(this), refreshRate);
 
-      window.addEventListener('resize', this.resizeHandler!);
-      window.addEventListener('orientationchange', this.resizeHandler!);
+      window.addEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+      window.addEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.SCROLL) > -1) {
-      if (this.scrollHandler) (this.eventTargetTable.scroll || window).removeEventListener('scroll', this.scrollHandler);
-      this.scrollHandler = (refreshRate === 0.0) ? this.onScroll.bind(this) : debounce(this.onScroll.bind(this), refreshRate);
-      this.eventTargetTable.scroll = target;
-      target.addEventListener('scroll', this.scrollHandler);
+      if (this.eventHandlerDict[EventType.SCROLL]) (this.eventTargetDict[EventType.SCROLL] || window).removeEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener);
+      this.eventHandlerDict[EventType.SCROLL] = (refreshRate === 0.0) ? this.onScroll.bind(this) : debounce(this.onScroll.bind(this), refreshRate);
+      this.eventTargetDict[EventType.SCROLL] = target;
+      target.addEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.MOUSE_WHEEL) > -1) {
-      if (this.mouseWheelHandler) (this.eventTargetTable.mouseWheel || window).removeEventListener('wheel', this.mouseWheelHandler);
-      this.mouseWheelHandler = ((refreshRate === 0.0) ? this.onWindowMouseWheel.bind(this) : debounce(this.onWindowMouseWheel.bind(this), refreshRate)) as EventListener;
-      this.eventTargetTable.mouseWheel = target;
-      target.addEventListener('wheel', this.mouseWheelHandler);
+      if (this.eventHandlerDict[EventType.MOUSE_WHEEL]) (this.eventTargetDict[EventType.MOUSE_WHEEL] || window).removeEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener);
+      this.eventHandlerDict[EventType.MOUSE_WHEEL] = ((refreshRate === 0.0) ? this.onWindowMouseWheel.bind(this) : debounce(this.onWindowMouseWheel.bind(this), refreshRate)) as EventListener;
+      this.eventTargetDict[EventType.MOUSE_WHEEL] = target;
+      target.addEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.MOUSE_MOVE) > -1) {
-      if (this.mouseMoveHandler) (this.eventTargetTable.mouseMove || window).removeEventListener('mousemove', this.mouseMoveHandler);
-      this.mouseMoveHandler = ((refreshRate === 0.0) ? this.onWindowMouseMove.bind(this) : debounce(this.onWindowMouseMove.bind(this), refreshRate)) as EventListener;
-      this.eventTargetTable.mouseMove = target;
-      target.addEventListener('mousemove', this.mouseMoveHandler);
+      if (this.eventHandlerDict[EventType.MOUSE_MOVE]) (this.eventTargetDict[EventType.MOUSE_MOVE] || window).removeEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener);
+      this.eventHandlerDict[EventType.MOUSE_MOVE] = ((refreshRate === 0.0) ? this.onWindowMouseMove.bind(this) : debounce(this.onWindowMouseMove.bind(this), refreshRate)) as EventListener;
+      this.eventTargetDict[EventType.MOUSE_MOVE] = target;
+      target.addEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
       const win = window as any;
 
-      if (this.orientationChangeHandler) {
-        if (win.DeviceOrientationEvent) window.removeEventListener('deviceorientation', this.orientationChangeHandler);
-        else if (win.DeviceMotionEvent) window.removeEventListener('devicemotion', this.orientationChangeHandler);
+      if (this.eventHandlerDict[EventType.ORIENTATION_CHANGE]) {
+        if (win.DeviceOrientationEvent) window.removeEventListener('deviceorientation', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
+        else if (win.DeviceMotionEvent) window.removeEventListener('devicemotion', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
       }
 
-      this.orientationChangeHandler = (refreshRate === 0.0) ? this.onWindowOrientationChange.bind(this) : debounce(this.onWindowOrientationChange.bind(this), refreshRate);
+      this.eventHandlerDict[EventType.ORIENTATION_CHANGE] = (refreshRate === 0.0) ? this.onWindowOrientationChange.bind(this) : debounce(this.onWindowOrientationChange.bind(this), refreshRate);
 
-      if (win.DeviceOrientationEvent) window.addEventListener('deviceorientation', this.orientationChangeHandler);
-      else if (win.DeviceMotionEvent) window.addEventListener('devicemotion', this.orientationChangeHandler);
+      if (win.DeviceOrientationEvent) window.addEventListener('deviceorientation', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
+      else if (win.DeviceMotionEvent) window.addEventListener('devicemotion', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.KEY_DOWN) > -1) {
-      if (this.keyDownHandler) window.removeEventListener('keydown', this.keyDownHandler);
-      this.keyDownHandler = this.onWindowKeyDown.bind(this) as EventListener;
-      window.addEventListener('keydown', this.keyDownHandler);
+      if (this.eventHandlerDict[EventType.KEY_DOWN]) window.removeEventListener('keydown', this.eventHandlerDict[EventType.KEY_DOWN] as EventListener);
+      this.eventHandlerDict[EventType.KEY_DOWN] = this.onWindowKeyDown.bind(this) as EventListener;
+      window.addEventListener('keydown', this.eventHandlerDict[EventType.KEY_DOWN] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.KEY_PRESS) > -1) {
-      if (this.keyPressHandler) window.removeEventListener('keypress', this.keyPressHandler);
-      this.keyPressHandler = this.onWindowKeyPress.bind(this) as EventListener;
-      window.addEventListener('keypress', this.keyPressHandler);
+      if (this.eventHandlerDict[EventType.KEY_PRESS]) window.removeEventListener('keypress', this.eventHandlerDict[EventType.KEY_PRESS] as EventListener);
+      this.eventHandlerDict[EventType.KEY_PRESS] = this.onWindowKeyPress.bind(this) as EventListener;
+      window.addEventListener('keypress', this.eventHandlerDict[EventType.KEY_PRESS] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.KEY_UP) > -1) {
-      if (this.keyUpHandler) window.removeEventListener('keyup', this.keyUpHandler);
-      this.keyUpHandler = this.onWindowKeyUp.bind(this) as EventListener;
-      window.addEventListener('keyup', this.keyUpHandler);
+      if (this.eventHandlerDict[EventType.KEY_UP]) window.removeEventListener('keyup', this.eventHandlerDict[EventType.KEY_UP] as EventListener);
+      this.eventHandlerDict[EventType.KEY_UP] = this.onWindowKeyUp.bind(this) as EventListener;
+      window.addEventListener('keyup', this.eventHandlerDict[EventType.KEY_UP] as EventListener);
     }
 
     if (isUniversal || eventTypes.indexOf(EventType.ENTER_FRAME) > -1) {
-      if (this.enterFrameHandler !== undefined) window.clearInterval(this.enterFrameHandler);
-      this.enterFrameHandler = window.setInterval(this.onEnterFrame.bind(this), refreshRate);
+      if (this.eventHandlerDict[EventType.ENTER_FRAME] !== undefined) window.clearInterval(this.eventHandlerDict[EventType.ENTER_FRAME] as number);
+      this.eventHandlerDict[EventType.ENTER_FRAME] = window.setInterval(this.onEnterFrame.bind(this), refreshRate);
     }
   }
 

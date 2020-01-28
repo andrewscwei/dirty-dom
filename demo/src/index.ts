@@ -51,7 +51,7 @@ const crossScrollDelegate = new CrossScrollDelegate({
     }
 
     if (position) {
-      console.log((delegate as ScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
+      // console.log((delegate as ScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
       // debug('position')(position);
     }
   },
@@ -75,3 +75,7 @@ crossScrollDelegate.scrollBreaks = info => {
 
 // scrollDelegate.init();
 crossScrollDelegate.init();
+
+window.addEventListener('click', () => {
+  crossScrollDelegate.scrollToBottom();
+});

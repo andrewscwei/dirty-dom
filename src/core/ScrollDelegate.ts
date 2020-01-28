@@ -2,7 +2,8 @@ import { Point, Rect, Size } from 'spase';
 import { PointDescriptor } from 'spase/build/core/Point';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
-import { DirtyInfo, ResponsiveDescriptor, ScrollBreak, ScrollBreakDescriptor, typeIsWindow, UpdateDelegator } from '../types';
+import { DirtyInfo, ResponsiveDescriptor, ScrollBreak, ScrollBreakDescriptor, ScrollOptions, typeIsWindow, UpdateDelegator } from '../types';
+import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrollToTop, vscrollTo } from '../utils/scroll';
 import UpdateDelegate from './UpdateDelegate';
 
 export default class ScrollDelegate extends UpdateDelegate {
@@ -45,6 +46,16 @@ export default class ScrollDelegate extends UpdateDelegate {
   private scrollBreakGetter?: (info: { minPos: Point, maxPos: Point }) => ScrollBreakDescriptor;
 
   /**
+   * Creates a new ScrollDelegate instance.
+   *
+   * @param delegator - The object to create this scroll delegate for.
+   * @param descriptors - Map of responsive descriptors.
+   */
+  constructor(delegator: UpdateDelegator, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
+    super(delegator, descriptors);
+  }
+
+  /**
    * Gets the minimum scroll position of the reference element.
    *
    * @return Minimum scroll position.
@@ -59,7 +70,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @return Maximum scroll position.
    */
   get maxPosition(): Point {
-    const refEl = this.eventTargetTable.scroll || window;
+    const refEl = this.eventTargetDict.scroll || window;
     const refRect = typeIsWindow(refEl) ? this.viewport : Rect.from(refEl);
     const refRectFull = Rect.from(refEl, { overflow: true });
 
@@ -123,16 +134,6 @@ export default class ScrollDelegate extends UpdateDelegate {
    */
   set scrollContainer(val: () => HTMLElement | undefined | null) {
     this.scrollContainerGetter = val;
-  }
-
-  /**
-   * Creates a new ScrollDelegate instance.
-   *
-   * @param delegator - The object to create this scroll delegate for.
-   * @param descriptors - Map of responsive descriptors.
-   */
-  constructor(delegator: UpdateDelegator, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
-    super(delegator, descriptors);
   }
 
   /** @inheritdoc */
@@ -290,6 +291,95 @@ export default class ScrollDelegate extends UpdateDelegate {
     if (position.y >= max) return 1;
 
     return (position.y - min) / (max - min);
+  }
+
+  /**
+   * Scrolls the scroll event listener to the top of its minimum vertical scroll
+   * position.
+   *
+   * @param options - @see ScrollOptions
+   */
+  scrollToTop(options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+    scrollToTop(target, options);
+  }
+
+  /**
+   * Scrolls the scroll event listener to the bottom of its maximum vertical
+   * scroll position.
+   *
+   * @param options - @see ScrollOptions
+   */
+  scrollToBottom(options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+    scrollToBottom(target, options);
+  }
+
+  /**
+   * Scrolls the scroll event listener to the left of its maximum horizontal
+   * scroll position.
+   *
+   * @param options - @see ScrollOptions
+   */
+  scrollToLeft(options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+    scrollToLeft(target, options);
+  }
+
+  /**
+   * Scrolls the scroll event listener to the right of its maximum horizontal
+   * scroll position.
+   *
+   * @param options - @see ScrollOptions
+   */
+  scrollToRight(options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+    scrollToRight(target, options);
+  }
+
+  /**
+   * Scrolls the scroll event listener to the specified position.
+   *
+   * @param position - The position to scroll to.
+   * @param options - @see ScrollOptions
+   */
+  scrollTo(position: Point, options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+
+    scrollTo(position, target, options);
+  }
+
+  /**
+   * Scrolls the scroll event listener horizontally to the specified
+   * x-coordinate.
+   *
+   * @param x - The x-coordinate to scroll to.
+   * @param options - @see ScrollOptions
+   */
+  hscrollTo(x: number, options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+
+    hscrollTo(x, target, options);
+  }
+
+  /**
+   * Scrolls the scroll event listener horizontally to the specified
+   * y-coordinate.
+   *
+   * @param y - The y-coordinate to scroll to.
+   * @param options - @see ScrollOptions
+   */
+  vscrollTo(y: number, options?: ScrollOptions) {
+    const target = this.eventTargetDict[EventType.SCROLL];
+    if (!target) return;
+
+    vscrollTo(y, target, options);
   }
 
   /** @inheritdoc */

@@ -28,7 +28,6 @@
   ],
   "devDependencies": {
     "@babel/core": "^7.8.3",
-    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
     "@babel/preset-env": "^7.8.3",
     "@babel/preset-typescript": "^7.8.3",
     "@types/compression-webpack-plugin": "^2.0.1",

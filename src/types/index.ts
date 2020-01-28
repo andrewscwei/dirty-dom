@@ -20,6 +20,33 @@ export type ScrollBreak = Readonly<{
   length: number;
 }>;
 
+export type ScrollOptions = Readonly<{
+  // Duration of scroll animation in milliseconds.
+  duration?: number;
+
+  // Enable ease in and out.
+  easing?: boolean;
+
+  // Specifies if the scroll animation can be overwritten by a new one defined
+  // on the same target.
+  isOverwriteable?: boolean;
+
+  // Handler invoked while the target is scrolling.
+  onProgress?: (progress: number) => void;
+
+  // Handler invoked whenever the target scrolling animation is cancelled.
+  onCancel?: () => void;
+
+  // Handler invoked when the target scrolling animation is complete.
+  onComplete?: () => void;
+}>;
+
+export interface ScrollInstance {
+  target: Window | HTMLElement;
+  animationFrame: number;
+  options: ScrollOptions;
+};
+
 export interface ResponsiveDescriptor {
   /**
    * The DOM element or window to listen for events.

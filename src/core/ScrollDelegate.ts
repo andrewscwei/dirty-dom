@@ -70,7 +70,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @return Maximum scroll position.
    */
   get maxPosition(): Point {
-    const refEl = this.eventTargetDict.scroll || window;
+    const refEl = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]) || window;
     const refRect = typeIsWindow(refEl) ? this.viewport : Rect.from(refEl);
     const refRectFull = Rect.from(refEl, { overflow: true });
 
@@ -300,7 +300,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   scrollToTop(options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
     scrollToTop(target, options);
   }
@@ -312,7 +312,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   scrollToBottom(options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
     scrollToBottom(target, options);
   }
@@ -324,7 +324,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   scrollToLeft(options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
     scrollToLeft(target, options);
   }
@@ -336,7 +336,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   scrollToRight(options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
     scrollToRight(target, options);
   }
@@ -348,7 +348,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   scrollTo(position: Point, options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
 
     scrollTo(position, target, options);
@@ -362,7 +362,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   hscrollTo(x: number, options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
 
     hscrollTo(x, target, options);
@@ -376,7 +376,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * @param options - @see ScrollOptions
    */
   vscrollTo(y: number, options?: ScrollOptions) {
-    const target = this.eventTargetDict[EventType.SCROLL];
+    const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]);
     if (!target) return;
 
     vscrollTo(y, target, options);

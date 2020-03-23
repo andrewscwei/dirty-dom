@@ -2,8 +2,12 @@ import UpdateDelegate from '../core/UpdateDelegate';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
 
+type Nullable<T> = T | undefined | null;
+
+export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLElement)>;
+
 export type DirtyInfo = {
-  [key in DirtyType]?: { [key: string]: any } | undefined;
+  [key in DirtyType]?: Nullable<{ [key: string]: any }>;
 };
 
 export interface UpdateDelegator {
@@ -41,17 +45,11 @@ export type ScrollOptions = Readonly<{
   onComplete?: () => void;
 }>;
 
-export interface ScrollInstance {
-  target: Window | HTMLElement;
-  animationFrame: number;
-  options: ScrollOptions;
-};
-
 export interface ResponsiveDescriptor {
   /**
    * The DOM element or window to listen for events.
    */
-  target?: Window | HTMLElement;
+  target?: DirtyTarget;
 
   /**
    * Event types to listen for.

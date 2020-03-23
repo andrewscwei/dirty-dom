@@ -1,7 +1,13 @@
 import { Point, Rect } from 'spase';
-import { ScrollInstance, ScrollOptions, typeIsWindow } from '../types';
+import { ScrollOptions, typeIsWindow } from '../types';
 import cancelAnimationFrame from './cancelAnimationFrame';
 import requestAnimationFrame from './requestAnimationFrame';
+
+export interface ScrollInstance {
+  target: Window | HTMLElement;
+  animationFrame: number;
+  options: ScrollOptions;
+}
 
 let scrollDict: { target: Window | HTMLElement, animationFrame: number, options: ScrollOptions }[] = [];
 
@@ -190,3 +196,4 @@ function setScrollInstance({ target, options, animationFrame }: ScrollInstance) 
     scrollDict.push({ target, options, animationFrame });
   }
 }
+

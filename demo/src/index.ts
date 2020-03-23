@@ -5,7 +5,7 @@
 
 import debug from 'debug';
 import { Rect } from 'spase';
-import { CrossScrollDelegate, DirtyInfo, DirtyType, ScrollDelegate, UpdateDelegate } from '../../build';
+import { CrossScrollDelegate, DirtyInfo, DirtyType, ScrollDelegate, UpdateDelegate, EventType } from '../../build';
 
 window.localStorage.debug = 'position,size,input';
 
@@ -20,7 +20,6 @@ const scrollDelegate = new ScrollDelegate({
     }
 
     if (position) {
-      console.log((delegate as ScrollDelegate).getRelativeStepOfChildAt(3, position.step));
       // debug('position')(position);
     }
   },

@@ -1,4 +1,4 @@
-import { Point, Rect } from 'spase';
+import { Point, Rect, Size } from 'spase';
 import DirtyType from '../enums/DirtyType';
 import EventType from '../enums/EventType';
 import { DirtyInfo, ResponsiveDescriptor, typeIsDirtyType, typeIsEventType, typeIsWindow, UpdateDelegator } from '../types';
@@ -51,6 +51,7 @@ export default class UpdateDelegate {
   protected eventTargetDict: { [key in EventType]?: Window | HTMLElement } = {};
   protected eventHandlerDict: { [key in EventType]?: EventListener | number } = {};
 
+
   /**
    * Delegator of this instance.
    */
@@ -66,6 +67,7 @@ export default class UpdateDelegate {
    */
   private dirtyTable: number = 0;
   private responsivenessTable?: { [key in EventType]?: number | true | { target?: Window | HTMLElement, refreshRate?: number } };
+  private eventPropDict: { [key in EventType]?: any } = {};
 
   /**
    * Creates a new UpdateDelegate instance.
@@ -165,6 +167,7 @@ export default class UpdateDelegate {
     this.pendingAnimationFrame = undefined;
     this.eventTargetDict = {};
     this.eventHandlerDict = {};
+    this.eventPropDict = {};
   }
 
   /**
@@ -259,9 +262,25 @@ export default class UpdateDelegate {
    * Updates the dirty info for size.
    */
   protected updateSizeInfo() {
-    const rectMin = Rect.fromViewport();
-    const rectMax = Rect.from(window, { overflow: true });
+    const target = this.eventTargetDict[EventType.RESIZE];
 
+    if (!target) return;
+
+    let rectMin;
+    let rectMax;
+
+    if (target === window) {
+      rectMin = Rect.fromViewport();
+      rectMax = Rect.from(window, { overflow: true });
+    }
+    else {
+      rectMin = Rect.from(target);
+      rectMax = Rect.from(target, { overflow: true });
+
+      this.eventPropDict[EventType.RESIZE] = rectMin;
+    }
+
+    if (!rectMin) return;
     if (!rectMax) return;
 
     this.dirtyInfo[DirtyType.SIZE] = {
@@ -282,42 +301,53 @@ export default class UpdateDelegate {
    * @param params - @see ResponsiveDescriptor
    */
   private initResponsiveness({ target = window, refreshRate = (this.constructor as any).DEFAULT_REFRESH_RATE, eventTypes = [] }: ResponsiveDescriptor = {}) {
-    const isUniversal = eventTypes.length === 0;
+    const isResponsiveToEverything = eventTypes.length === 0;
 
-    if (isUniversal || eventTypes.indexOf(EventType.RESIZE) > -1 || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.RESIZE) > -1 || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
       if (this.eventHandlerDict[EventType.RESIZE]) {
-        window.removeEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
-        window.removeEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+        if (!this.eventTargetDict[EventType.RESIZE] || ((this.eventTargetDict[EventType.RESIZE] === window))) {
+          window.removeEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+          window.removeEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+        }
+        else {
+          window.clearInterval(this.eventHandlerDict[EventType.RESIZE] as number);
+        }
       }
 
-      this.eventHandlerDict[EventType.RESIZE] = (refreshRate === 0.0) ? this.onWindowResize.bind(this) : debounce(this.onWindowResize.bind(this), refreshRate);
+      this.eventTargetDict[EventType.RESIZE] = target;
 
-      window.addEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
-      window.addEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+      if (target === window) {
+        this.eventHandlerDict[EventType.RESIZE] = (refreshRate === 0.0) ? this.onWindowResize.bind(this) : debounce(this.onWindowResize.bind(this), refreshRate);
+        window.addEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+        window.addEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener);
+      }
+      else {
+        window.setInterval(this.onResize.bind(this), Math.max(refreshRate, 1 / 60));
+      }
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.SCROLL) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.SCROLL) > -1) {
       if (this.eventHandlerDict[EventType.SCROLL]) (this.eventTargetDict[EventType.SCROLL] || window).removeEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener);
       this.eventHandlerDict[EventType.SCROLL] = (refreshRate === 0.0) ? this.onScroll.bind(this) : debounce(this.onScroll.bind(this), refreshRate);
       this.eventTargetDict[EventType.SCROLL] = target;
       target.addEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.MOUSE_WHEEL) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.MOUSE_WHEEL) > -1) {
       if (this.eventHandlerDict[EventType.MOUSE_WHEEL]) (this.eventTargetDict[EventType.MOUSE_WHEEL] || window).removeEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener);
       this.eventHandlerDict[EventType.MOUSE_WHEEL] = ((refreshRate === 0.0) ? this.onWindowMouseWheel.bind(this) : debounce(this.onWindowMouseWheel.bind(this), refreshRate)) as EventListener;
       this.eventTargetDict[EventType.MOUSE_WHEEL] = target;
       target.addEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.MOUSE_MOVE) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.MOUSE_MOVE) > -1) {
       if (this.eventHandlerDict[EventType.MOUSE_MOVE]) (this.eventTargetDict[EventType.MOUSE_MOVE] || window).removeEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener);
       this.eventHandlerDict[EventType.MOUSE_MOVE] = ((refreshRate === 0.0) ? this.onWindowMouseMove.bind(this) : debounce(this.onWindowMouseMove.bind(this), refreshRate)) as EventListener;
       this.eventTargetDict[EventType.MOUSE_MOVE] = target;
       target.addEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.ORIENTATION_CHANGE) > -1) {
       const win = window as any;
 
       if (this.eventHandlerDict[EventType.ORIENTATION_CHANGE]) {
@@ -331,27 +361,27 @@ export default class UpdateDelegate {
       else if (win.DeviceMotionEvent) window.addEventListener('devicemotion', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.KEY_DOWN) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.KEY_DOWN) > -1) {
       if (this.eventHandlerDict[EventType.KEY_DOWN]) window.removeEventListener('keydown', this.eventHandlerDict[EventType.KEY_DOWN] as EventListener);
       this.eventHandlerDict[EventType.KEY_DOWN] = this.onWindowKeyDown.bind(this) as EventListener;
       window.addEventListener('keydown', this.eventHandlerDict[EventType.KEY_DOWN] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.KEY_PRESS) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.KEY_PRESS) > -1) {
       if (this.eventHandlerDict[EventType.KEY_PRESS]) window.removeEventListener('keypress', this.eventHandlerDict[EventType.KEY_PRESS] as EventListener);
       this.eventHandlerDict[EventType.KEY_PRESS] = this.onWindowKeyPress.bind(this) as EventListener;
       window.addEventListener('keypress', this.eventHandlerDict[EventType.KEY_PRESS] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.KEY_UP) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.KEY_UP) > -1) {
       if (this.eventHandlerDict[EventType.KEY_UP]) window.removeEventListener('keyup', this.eventHandlerDict[EventType.KEY_UP] as EventListener);
       this.eventHandlerDict[EventType.KEY_UP] = this.onWindowKeyUp.bind(this) as EventListener;
       window.addEventListener('keyup', this.eventHandlerDict[EventType.KEY_UP] as EventListener);
     }
 
-    if (isUniversal || eventTypes.indexOf(EventType.ENTER_FRAME) > -1) {
+    if (isResponsiveToEverything || eventTypes.indexOf(EventType.ENTER_FRAME) > -1) {
       if (this.eventHandlerDict[EventType.ENTER_FRAME] !== undefined) window.clearInterval(this.eventHandlerDict[EventType.ENTER_FRAME] as number);
-      this.eventHandlerDict[EventType.ENTER_FRAME] = window.setInterval(this.onEnterFrame.bind(this), refreshRate);
+      this.eventHandlerDict[EventType.ENTER_FRAME] = window.setInterval(this.onEnterFrame.bind(this), Math.max(refreshRate, 1 / 60));
     }
   }
 
@@ -390,7 +420,21 @@ export default class UpdateDelegate {
    */
   private onWindowResize(event: Event) {
     this.updateSizeInfo();
-    this.updatePositionInfo();
+    this.updatePositionInfo(this.eventTargetDict[EventType.SCROLL]);
+    this.setDirty(DirtyType.SIZE | DirtyType.POSITION);
+  }
+
+  /**
+   * Handler invoked when the target resize check interval is triggered.
+   */
+  private onResize() {
+    const rect = Rect.from(this.eventTargetDict[EventType.RESIZE]);
+    const size = rect ? rect.size : new Size();
+
+    if (this.eventPropDict[EventType.RESIZE] && size.equals(this.eventPropDict[EventType.RESIZE])) return;
+
+    this.updateSizeInfo();
+    this.updatePositionInfo(this.eventTargetDict[EventType.SCROLL]);
     this.setDirty(DirtyType.SIZE | DirtyType.POSITION);
   }
 
@@ -527,11 +571,9 @@ export default class UpdateDelegate {
   }
 
   /**
-   * Handler invoked on every frame.
-   *
-   * @param event - The dispatched event.
+   * Handler invoked when the enter frame check interval is triggered.
    */
-  private onEnterFrame(event: Event) {
+  private onEnterFrame() {
     this.setDirty(DirtyType.FRAME);
   }
 }

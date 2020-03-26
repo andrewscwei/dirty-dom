@@ -1,6 +1,6 @@
 {
-  "name": "@andrewscwei/dirty",
-  "version": "3.1.0",
+  "name": "dirty-dom",
+  "version": "4.0.0",
   "description": "Micro library for handling dirty DOM updates",
   "main": "build/index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andrewscwei/dirty.git"
+    "url": "git+https://github.com/andrewscwei/dirty-dom.git"
   },
   "keywords": [
     "dirty",
@@ -48,13 +48,13 @@
     "ts-node": "^8.8.1",
     "tslint": "^6.1.0",
     "typescript": "^3.8.3",
-    "webpack": "^4.42.0",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3",
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "spase": "^3.21.0"
+    "spase": "^3.22.0"
   },
   "types": "build/index.d.ts"
 }

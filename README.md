@@ -1,11 +1,11 @@
-# Dirty [![npm (scoped)](https://img.shields.io/npm/v/@andrewscwei/dirty.svg)](https://www.npmjs.com/package/@andrewscwei/dirty) [![CircleCI](https://img.shields.io/circleci/build/gh/andrewscwei/dirty.svg)](https://circleci.com/gh/andrewscwei/dirty)
+# Dirty DOM [![npm (scoped)](https://img.shields.io/npm/v/@andrewscwei/dirty-dom.svg)](https://www.npmjs.com/package/@andrewscwei/dirty-dom) [![CircleCI](https://img.shields.io/circleci/build/gh/andrewscwei/dirty-dom.svg)](https://circleci.com/gh/andrewscwei/dirty-dom)
 
 Micro library for handling dirty DOM updates frame-by-frame.
 
 ## Usage
 
 ```js
-import { DirtyType, EventType, UpdateDelegate } from '@andrewscwei/dirty';
+import { DirtyType, EventType, UpdateDelegate } from 'dirty-dom';
 
 class Foo {
   get bar() {
@@ -156,6 +156,10 @@ class Foo {
 ```
 
 ## Release Notes
+
+### `v4.0.0`
+
+- **WARNING** The NPM package has been renamed to `dirty-dom`.
 
 ### `v3.0.0`
 

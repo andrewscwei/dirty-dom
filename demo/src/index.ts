@@ -4,8 +4,7 @@
  */
 
 import debug from 'debug';
-import { Rect } from 'spase';
-import { CrossScrollDelegate, DirtyInfo, DirtyType, ScrollDelegate, UpdateDelegate, EventType } from '../../build';
+import { CrossScrollDelegate, DirtyInfo, DirtyType, Rect, ScrollDelegate, UpdateDelegate } from '../../build';
 
 window.localStorage.debug = 'position,size,input';
 

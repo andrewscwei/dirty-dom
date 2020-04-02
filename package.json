@@ -1,6 +1,6 @@
 {
   "name": "dirty-dom",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Micro library for handling dirty DOM updates",
   "main": "build/index.js",
   "scripts": {
@@ -34,19 +34,19 @@
     "@types/debug": "^4.1.5",
     "@types/html-webpack-plugin": "^3.2.2",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^13.9.3",
-    "@types/webpack": "^4.41.8",
+    "@types/node": "^13.9.8",
+    "@types/webpack": "^4.41.10",
     "@types/webpack-env": "^1.15.1",
     "@types/webpack-node-externals": "^1.7.1",
     "babel-loader": "^8.1.0",
     "compression-webpack-plugin": "^3.1.0",
     "debug": "^4.1.1",
-    "html-webpack-plugin": "^4.0.1",
+    "html-webpack-plugin": "^4.0.4",
     "mocha": "^7.1.1",
     "rimraf": "^3.0.2",
     "ts-loader": "^6.2.2",
     "ts-node": "^8.8.1",
-    "tslint": "^6.1.0",
+    "tslint": "^6.1.1",
     "typescript": "^3.8.3",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11",
@@ -55,6 +55,6 @@
   },
   "types": "build/index.d.ts",
   "dependencies": {
-    "spase": "^3.22.0"
+    "spase": "^4.0.0"
   }
 }

@@ -21,7 +21,7 @@ jobs:
           paths: [node_modules]
       - run:
           name: Build
-          command: npm run build
+          command: BUILD_NUMBER=$CIRCLE_SHA1 npm run build
       - run:
           name: Pack
           command: .circleci/pack.sh

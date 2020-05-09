@@ -4,9 +4,10 @@ import { Configuration } from 'webpack';
 
 const cwd: string = path.join(__dirname, '../');
 const inputDir: string = path.join(cwd, 'src');
-const outputDir: string = path.join(cwd, 'build');
+const outputDir: string = path.join(cwd, '../', '.pages');
 
 const config: Configuration = {
+  mode: 'production',
   devtool: 'source-map',
   entry: {
     bundle: path.join(inputDir, 'index.ts'),

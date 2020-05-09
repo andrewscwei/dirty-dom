@@ -1,9 +1,9 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: node:10.16.0
+    - image: node:13.12.0
 
-version: 2
+version: 2.1
 jobs:
   build:
     <<: *defaults
@@ -11,15 +11,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - dependency-cache-{{ checksum "package-lock.json" }}
-            - dependency-cache-
+            - v1-node-modules-{{ checksum "package-lock.json" }}
+            - v1-node-modules-
       - run:
-          name: Install NPM dependencies
+          name: Install Node modules
           command: npm install
       - save_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-          paths:
-            - "node_modules"
+          key: v1-node-modules-{{ checksum "package-lock.json" }}
+          paths: [node_modules]
       - run:
           name: Build
           command: npm run build
@@ -31,13 +30,13 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - .circleci/
             - build/
             - node_modules/
-            - package.json
+            - package/
   test:
     <<: *defaults
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run:
@@ -57,23 +56,21 @@ jobs:
           command: .circleci/deploy_to_gh_pages.sh
 
 workflows:
-  version: 2
+  version: 2.1
   build_test_deploy:
     jobs:
       - build:
           filters:
             tags:
-              only: /^v.*/
+              only: /.*/
       - test:
-          requires:
-            - build
+          requires: [build]
           filters:
             tags:
-              only: /^v.*/
+              only: /.*/
       - deploy:
           context: npm_deployment
-          requires:
-            - test
+          requires: [test]
           filters:
             branches:
               ignore: /.*/

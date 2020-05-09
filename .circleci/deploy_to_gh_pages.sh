@@ -1,24 +1,30 @@
 #!/bin/bash
 
+# Required environment variables:
+# - GH_USER: Name of GitHub user to use for the commit
+# - GH_PAGES_DIR: Directory (relative to project root) to deploy to GitHub Pages
+
+__GH_PAGES_DIR__=${GH_PAGES_DIR:-.pages}
+__GH_USER__=${GH_USER:-$CIRCLE_PROJECT_USERNAME}
+__ORIGIN_URL__=`git config --get remote.origin.url`
+
 if [ `git branch | grep gh-pages` ]; then
   git branch -D gh-pages
 fi
 
 git checkout -b gh-pages
-npm run build:demo
+npm run pages
 
-# Move generated demo to root and delete everything else.
-find . -maxdepth 1 ! -name '.' ! -name '..' ! -name 'demo' ! -name '.git' ! -name '.gitignore' -exec rm -rf {} \;
-mv demo/build/* .
-rm -R demo/
+# Move generated files to root and delete everything else.
+find . -maxdepth 1 ! -name '.' ! -name '..' ! -name ${__GH_PAGES_DIR__} ! -name '.git' ! -name '.gitignore' -exec rm -rf {} \;
+mv ${__GH_PAGES_DIR__}/* .
+rm -R ${__GH_PAGES_DIR__}/
 
 # Push to gh-pages.
-ORIGIN_URL=`git config --get remote.origin.url`
-
-git config user.name "$CIRCLE_PROJECT_USERNAME"
-git config user.email "$CIRCLE_PROJECT_USERNAME@users.noreply.github.com"
+git config user.name "$__GH_USER__"
+git config user.email "$__GH_USER__@users.noreply.github.com"
 git add -fA
-git commit --allow-empty -m "[Skip CI] $(git log -1 --pretty=%B)"
-git push -f $ORIGIN_URL gh-pages
+git commit --allow-empty -m "[SKIP CI] $(git log -1 --pretty=%B)"
+git push -f $__ORIGIN_URL__ gh-pages
 
 echo "Successfully published docs to GitHub Pages"

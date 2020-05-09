@@ -5,7 +5,7 @@
 # - GH_PAGES_DIR: Directory (relative to project root) to deploy to GitHub Pages
 
 __GH_PAGES_DIR__=${GH_PAGES_DIR:-.pages}
-__GH_USER__=${GH_USER:-$CIRCLE_PROJECT_USERNAME}
+__GH_USER__=${GH_USER:-$GITHUB_ACTOR}
 __ORIGIN_URL__=`git config --get remote.origin.url`
 
 if [ `git branch | grep gh-pages` ]; then

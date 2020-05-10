@@ -1,4 +1,4 @@
-# Dirty DOM [![npm (scoped)](https://img.shields.io/npm/v/@andrewscwei/dirty-dom.svg)](https://www.npmjs.com/package/@andrewscwei/dirty-dom) [![CI](https://github.com/andrewscwei/dirty-dom/workflows/CI/badge.svg)](https://github.com/andrewscwei/dirty-dom/actions?query=workflow%3ACI) [![CD](https://github.com/andrewscwei/dirty-dom/workflows/CD/badge.svg)](https://github.com/andrewscwei/dirty-dom/actions?query=workflow%3ACD)
+# Dirty DOM [![npm](https://img.shields.io/npm/v/dirty-dom.svg)](https://www.npmjs.com/package/dirty-dom) [![CI](https://github.com/andrewscwei/dirty-dom/workflows/CI/badge.svg)](https://github.com/andrewscwei/dirty-dom/actions?query=workflow%3ACI) [![CD](https://github.com/andrewscwei/dirty-dom/workflows/CD/badge.svg)](https://github.com/andrewscwei/dirty-dom/actions?query=workflow%3ACD)
 
 Micro library for handling dirty DOM updates frame-by-frame.
 

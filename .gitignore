@@ -37,8 +37,8 @@ upload/
 uploads/
 docs/
 lib/
-.pages/
-.pages.*/
+.gh-pages/
+.gh-pages.*/
 .tmp/
 .tmp.*/
 .publish/

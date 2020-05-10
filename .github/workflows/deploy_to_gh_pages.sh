@@ -4,7 +4,7 @@
 # - GH_USER: Name of GitHub user to use for the commit
 # - GH_PAGES_DIR: Directory (relative to project root) to deploy to GitHub Pages
 
-__GH_PAGES_DIR__=${GH_PAGES_DIR:-.pages}
+__GH_PAGES_DIR__=${GH_PAGES_DIR:-.gh-pages}
 __GH_USER__=${GH_USER:-$GITHUB_ACTOR}
 __ORIGIN_URL__=`git config --get remote.origin.url`
 

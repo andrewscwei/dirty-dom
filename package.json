@@ -1,12 +1,12 @@
 {
   "name": "dirty-dom",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Micro library for handling dirty DOM updates",
   "main": "build/index.js",
   "scripts": {
     "clean": "rimraf build",
     "build": "npm run clean && webpack --config config/build.conf.ts",
-    "pages": "rimraf .pages && webpack --config demo/config/dev.conf.ts --port 8080",
+    "pages": "rimraf .gh-pages && webpack --config demo/config/dev.conf.ts --port 8080",
     "demo": "npm run build -- --watch & NODE_ENV=development webpack-dev-server --inline --hot --config demo/config/dev.conf.ts --port 8080",
     "test": "echo \"No tests yet\"",
     "lint": "tslint \"src/**/*.ts\" --project tsconfig.json",

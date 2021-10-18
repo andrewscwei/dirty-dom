@@ -7,6 +7,7 @@ import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrol
 import UpdateDelegate from './UpdateDelegate'
 
 export default class ScrollDelegate extends UpdateDelegate {
+
   protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
     ...UpdateDelegate.DEFAULT_DIRTY_INFO,
     [DirtyType.SIZE]: {
@@ -41,6 +42,9 @@ export default class ScrollDelegate extends UpdateDelegate {
   /**
    * Definied scroll break descriptors. A scroll break is a point in scrolling where the target
    * holds its position still until the scroll break length is surprassed.
+   *
+   * @param info - Object containing the minimum position and the maximum position of the scroll
+   *               target.
    */
   private scrollBreakGetter?: (info: { minPos: Point; maxPos: Point }) => ScrollBreakDescriptor
 
@@ -427,12 +431,11 @@ export default class ScrollDelegate extends UpdateDelegate {
    */
   protected updateScrollContainerSize(size: Size) {
     const scrollContainer = this.scrollContainerGetter && this.scrollContainerGetter()
+
     if (!scrollContainer) return
 
-    if (scrollContainer) {
-      scrollContainer.style.width = `${size.width}px`
-      scrollContainer.style.height = `${size.height}px`
-    }
+    scrollContainer.style.width = `${size.width}px`
+    scrollContainer.style.height = `${size.height}px`
   }
 
   /**

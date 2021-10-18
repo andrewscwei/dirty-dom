@@ -5,6 +5,7 @@
  * DOM.
  */
 enum DirtyType {
+
   /**
    * Indicates that nothing in the UI has changed.
    */

@@ -12,6 +12,9 @@ const config: Configuration = {
   entry: {
     bundle: path.join(inputDir, 'index.ts'),
   },
+  infrastructureLogging: {
+    level: 'error',
+  },
   module: {
     rules: [{
       test: /\.ts$/,

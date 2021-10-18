@@ -28,19 +28,19 @@ const scrollDelegate = new ScrollDelegate({
 
 scrollDelegate.scrollTarget = () => document.getElementById('main')
 scrollDelegate.scrollContainer = () => document.getElementById('scroller')
-// scrollDelegate.scrollBreaks = info => {
-//   const { height: h } = Rect.from(mainNode)!;
+scrollDelegate.scrollBreaks = info => {
+  const { height: h } = Rect.from(mainNode)!;
 
-//   return {
-//     y: [{
-//       step: (Rect.fromChildAt(1, mainNode)!.bottom - h) / info.maxPos.y,
-//       length: 1000,
-//     }, {
-//       step: (Rect.fromChildAt(6, mainNode)!.bottom - h) / info.maxPos.y,
-//       length: 2000,
-//     }],
-//   };
-// };
+  return {
+    y: [{
+      step: (Rect.fromChildAt(1, mainNode)!.bottom - h) / info.maxPos.y,
+      length: 1000,
+    }, {
+      step: (Rect.fromChildAt(6, mainNode)!.bottom - h) / info.maxPos.y,
+      length: 2000,
+    }],
+  };
+};
 
 const crossScrollDelegate = new CrossScrollDelegate({
   update(info: DirtyInfo, delegate: UpdateDelegate) {

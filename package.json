@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf build",
     "build": "npm run clean && webpack --config config/build.conf.ts",
-    "pages": "rimraf .gh-pages && webpack --config demo/config/dev.conf.ts --port 8080",
+    "pages": "rimraf .gh-pages && webpack --config demo/config/dev.conf.ts",
     "demo": "npm run build -- --watch & NODE_ENV=development webpack-dev-server --hot --config demo/config/dev.conf.ts --port 8080",
     "test": "echo \"No tests yet\"",
     "lint": "eslint --ext .ts --ext .tsx src config demo",

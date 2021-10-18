@@ -1,18 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-non-null-assertion */
+
 /**
- * @file This is a very dumb demo. It needs to be revised, but for now, it's
- *       just a quick way during development to test the API.
+ * @file This is a very dumb demo. It needs to be revised, but for now, it's just a quick way during
+ *       development to test the API.
  */
 
-import debug from 'debug';
-import { CrossScrollDelegate, DirtyInfo, DirtyType, Rect, ScrollDelegate, UpdateDelegate } from '../../build';
+import debug from 'debug'
+import { CrossScrollDelegate, DirtyInfo, DirtyType, Rect, ScrollDelegate, UpdateDelegate } from '../../build'
 
-window.localStorage.debug = 'position,size,input';
+window.localStorage.debug = 'position,size,input'
 
-const mainNode = document.getElementById('main');
+const mainNode = document.getElementById('main')
 
 const scrollDelegate = new ScrollDelegate({
   update(info: DirtyInfo, delegate: UpdateDelegate) {
-    const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
+    const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info
 
     if (size) {
       // debug('size')(size);
@@ -22,10 +24,10 @@ const scrollDelegate = new ScrollDelegate({
       // debug('position')(position);
     }
   },
-});
+})
 
-scrollDelegate.scrollTarget = () => document.getElementById('main');
-scrollDelegate.scrollContainer = () => document.getElementById('scroller');
+scrollDelegate.scrollTarget = () => document.getElementById('main')
+scrollDelegate.scrollContainer = () => document.getElementById('scroller')
 // scrollDelegate.scrollBreaks = info => {
 //   const { height: h } = Rect.from(mainNode)!;
 
@@ -42,10 +44,10 @@ scrollDelegate.scrollContainer = () => document.getElementById('scroller');
 
 const crossScrollDelegate = new CrossScrollDelegate({
   update(info: DirtyInfo, delegate: UpdateDelegate) {
-    const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info;
+    const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info
 
     if (size) {
-      debug('size')(size);
+      debug('size')(size)
     }
 
     if (position) {
@@ -53,12 +55,12 @@ const crossScrollDelegate = new CrossScrollDelegate({
       // debug('position')(position);
     }
   },
-});
+})
 
-crossScrollDelegate.scrollTarget = () => document.getElementById('main');
-crossScrollDelegate.scrollContainer = () => document.getElementById('scroller');
+crossScrollDelegate.scrollTarget = () => document.getElementById('main')
+crossScrollDelegate.scrollContainer = () => document.getElementById('scroller')
 crossScrollDelegate.scrollBreaks = info => {
-  const { width: w, height: h } = Rect.from(mainNode)!;
+  const { width: w, height: h } = Rect.from(mainNode)!
 
   return {
     x: [{
@@ -68,12 +70,12 @@ crossScrollDelegate.scrollBreaks = info => {
       step: (Rect.fromChildAt(6, mainNode)!.right - w) / info.maxPos.x,
       length: 2000,
     }],
-  };
-};
+  }
+}
 
 // scrollDelegate.init();
-crossScrollDelegate.init();
+crossScrollDelegate.init()
 
 window.addEventListener('click', () => {
-  crossScrollDelegate.scrollToBottom();
-});
+  crossScrollDelegate.scrollToBottom()
+})

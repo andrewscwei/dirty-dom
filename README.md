@@ -54,11 +54,13 @@ class Foo {
       // Invokes `update` whenever the key press event is triggered.
       [EventType.KEY_PRESS]: true,
     });
+
+    updateDelegate.init();
   }
 
   deinit() {
     // Clean up the update delegate if needed.
-    this.updateDelegate.destroy();
+    this.updateDelegate.deinit();
   }
 
   /**

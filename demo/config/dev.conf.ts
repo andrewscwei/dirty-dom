@@ -1,10 +1,10 @@
-import HTMLPlugin from 'html-webpack-plugin';
-import path from 'path';
-import { Configuration } from 'webpack';
+import HTMLPlugin from 'html-webpack-plugin'
+import path from 'path'
+import { Configuration } from 'webpack'
 
-const cwd: string = path.join(__dirname, '../');
-const inputDir: string = path.join(cwd, 'src');
-const outputDir: string = path.join(cwd, '../', '.gh-pages');
+const cwd: string = path.join(__dirname, '../')
+const inputDir: string = path.join(cwd, 'src')
+const outputDir: string = path.join(cwd, '../', '.gh-pages')
 
 const config: Configuration = {
   mode: 'production',
@@ -37,6 +37,6 @@ const config: Configuration = {
     extensions: ['.js', '.ts'],
   },
   target: 'web',
-};
+}
 
-export default config;
+export default config

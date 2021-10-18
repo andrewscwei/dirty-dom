@@ -13,27 +13,26 @@ enum EventType {
   RESIZE = 'resize',
 
   /**
-   * Event triggered when the device orientation changes (only available for
-   * devices that support the following events: `orientationchange`,
-   * `deviceorientation`, or `devicemotion`).
+   * Event triggered when the device orientation changes (only available for devices that support
+   * the following events: `orientationchange`, `deviceorientation`, or `devicemotion`).
    */
   ORIENTATION_CHANGE = 'orientationchange',
 
   /**
-   * Event triggered when an element is scrolled. Supports custom target
-   * element, defaults to the window.
+   * Event triggered when an element is scrolled. Supports custom target element, defaults to the
+   * window.
    */
   SCROLL = 'scroll',
 
   /**
-   * Event triggered whenever an element detects a mouse wheel action. Supports
-   * custom target element, defaults to the window.
+   * Event triggered whenever an element detects a mouse wheel action. Supports custom target
+   * element, defaults to the window.
    */
   MOUSE_WHEEL = 'wheel',
 
   /**
-   * Event triggered whenever an element detects a mouse move action. Supports
-   * custom target element, defaults to the window.
+   * Event triggered whenever an element detects a mouse move action. Supports custom target
+   * element, defaults to the window.
    */
   MOUSE_MOVE = 'mousemove',
 
@@ -53,4 +52,4 @@ enum EventType {
   KEY_PRESS = 'keypress',
 }
 
-export default EventType;
+export default EventType

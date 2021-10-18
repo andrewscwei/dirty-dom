@@ -1,81 +1,80 @@
-import UpdateDelegate from '../core/UpdateDelegate';
-import DirtyType from '../enums/DirtyType';
-import EventType from '../enums/EventType';
+import UpdateDelegate from '../core/UpdateDelegate'
+import DirtyType from '../enums/DirtyType'
+import EventType from '../enums/EventType'
 
-type Nullable<T> = T | undefined | null;
+type Nullable<T> = T | undefined | null
 
-export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLElement)>;
+export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLElement)>
 
 export type DirtyInfo = {
   [key in DirtyType]?: Nullable<{ [key: string]: any }>;
-};
+}
 
 export interface UpdateDelegator {
-  update: (info: DirtyInfo, delegate: UpdateDelegate) => void;
+  update: (info: DirtyInfo, delegate: UpdateDelegate) => void
 }
 
 export type ScrollBreakDescriptor = Readonly<{
-  x?: ScrollBreak[];
-  y?: ScrollBreak[];
-}>;
+  x?: ScrollBreak[]
+  y?: ScrollBreak[]
+}>
 
 export type ScrollBreak = Readonly<{
-  step: number;
-  length: number;
-}>;
+  step: number
+  length: number
+}>
 
 export type ScrollOptions = Readonly<{
   // Duration of scroll animation in milliseconds.
-  duration?: number;
+  duration?: number
 
   // Enable ease in and out.
-  easing?: boolean;
+  easing?: boolean
 
-  // Specifies if the scroll animation can be overwritten by a new one defined
-  // on the same target.
-  isOverwriteable?: boolean;
+  // Specifies if the scroll animation can be overwritten by a new one defined on the same target.
+  isOverwriteable?: boolean
 
   // Handler invoked while the target is scrolling.
-  onProgress?: (progress: number) => void;
+  onProgress?: (progress: number) => void
 
   // Handler invoked whenever the target scrolling animation is cancelled.
-  onCancel?: () => void;
+  onCancel?: () => void
 
   // Handler invoked when the target scrolling animation is complete.
-  onComplete?: () => void;
-}>;
+  onComplete?: () => void
+}>
 
 export interface ResponsiveDescriptor {
   /**
    * The DOM element or window to listen for events.
    */
-  target?: DirtyTarget;
+  target?: DirtyTarget
 
   /**
    * Event types to listen for.
    */
-  eventTypes?: EventType[];
+  eventTypes?: EventType[]
 
   /**
    * Dispatch rate of events.
    */
-  refreshRate?: number;
+  refreshRate?: number
 }
 
 export function typeIsDirtyType(val: any): val is DirtyType {
-  if (isNaN(Number(val))) return false;
+  if (isNaN(Number(val))) return false
 
   for (const key in DirtyType) {
-    if (Number(DirtyType[key]) === Number(val)) return true;
+    if (Number(DirtyType[key]) === Number(val)) return true
   }
 
-  return false;
+  return false
 }
 
 export function typeIsEventType(val: any): val is EventType {
-  return Object.values(EventType).includes(val);
+  return Object.values(EventType).includes(val)
 }
 
 export function typeIsWindow(val: any): val is Window {
-  return val === window;
+  return val === window
 }

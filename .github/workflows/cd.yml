@@ -85,4 +85,4 @@ jobs:
       - name: Deploy to GitHub pages
         run: .github/workflows/deploy_to_gh_pages.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

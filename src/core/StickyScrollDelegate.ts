@@ -20,6 +20,11 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   shouldAutoUpdateScrollTarget = true
 
   /**
+   * Gets the target element to simulate the scroll on.
+   */
+  private scrollTargetGetter?: () => HTMLElement | undefined | null
+
+  /**
    * Gets the associated scroll container.
    */
   private scrollContainerGetter?: () => HTMLElement | undefined | null
@@ -44,6 +49,47 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
+   * Gets the minimum position of the scroll target.
+   *
+   * @return Minimum postiion of the scroll target.
+   */
+   get scrollTargetMinPosition(): Point | null {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    if (!scrollTarget) return null
+    return new Point([0, 0])
+  }
+
+  /**
+   * Gets the maximum position of the scroll target.
+   *
+   * @return Maximum position of the scroll target.
+   */
+  get scrollTargetMaxPosition(): Point | null {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    if (!scrollTarget) return null
+
+    const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false })
+    if (!targetRectMin) return null
+
+    const targetRectFull = Rect.from(scrollTarget, { reference: scrollTarget, overflow: true })
+    if (!targetRectFull) return null
+
+    const targetRectMax = targetRectMin.clone({ x: targetRectFull.width - targetRectMin.width, y: targetRectFull.height - targetRectMin.height })
+
+    return new Point({
+      x: targetRectMax.left,
+      y: targetRectMax.top,
+    })
+  }
+
+  /**
+   * Sets the scroll target for this delegate.
+   */
+  set scrollTarget(val: () => HTMLElement | undefined | null) {
+    this.scrollTargetGetter = val
+  }
+
+  /**
    * Sets scroll breaks for this delegate.
    */
   set scrollBreaks(val: (info: { minPos: Point; maxPos: Point }) => ScrollBreakDescriptor) {
@@ -61,8 +107,81 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   deinit() {
     super.deinit()
 
+    this.scrollTargetGetter = undefined
     this.scrollContainerGetter = undefined
     this.scrollBreakGetter = undefined
+  }
+
+  /**
+   * Gets the `Rect` of a child relative to the scroll target.
+   *
+   * @param index - Index of the child.
+   *
+   * @return The relative `Rect`.
+   */
+   getRelativeRectOfChildAt(index: number): Rect | null {
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    return Rect.fromChildAt(index, scrollTarget)
+  }
+
+  /**
+   * Gets the scroll step relative to a child in the scroll target.
+   *
+   * @param index - The index of the child in the scroll target.
+   * @param currStep - The current overall scroll step.
+   *
+   * @return The relative scroll step to the child.
+   */
+  getRelativeStepOfChildAt(index: number, currStep: Point | PointDescriptor): Point | null {
+    const step = currStep instanceof Point ? currStep : new Point(currStep)
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const rect = Rect.fromChildAt(index, scrollTarget)
+
+    if (!rect) return null
+
+    return this.getRelativeStepOfRect(rect, step)
+  }
+
+  /**
+   * Gets the scroll step relative to a Rect in the scroll target.
+   *
+   * @param rect - The Rect in the scroll target.
+   * @param currStep - The current overall scroll step.
+   *
+   * @return The relative scroll step to the Rect.
+   */
+  getRelativeStepOfRect(rect: Rect, currStep: Point | PointDescriptor): Point | null {
+    const step = currStep instanceof Point ? currStep : new Point(currStep)
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const targetRectMin = Rect.from(scrollTarget)
+    const position = this.stepToNaturalPosition(step)
+
+    if (!scrollTarget || !targetRectMin || !position) return null
+
+    let x = NaN
+    let y = NaN
+
+    if ((position.x + targetRectMin.width) <= rect.left) {
+      x = 0
+    }
+    else if ((position.x + targetRectMin.width) >= rect.right) {
+      x = 1
+    }
+    else {
+      x = ((position.x + targetRectMin.width) - rect.left) / (rect.right - rect.left)
+    }
+
+    if ((position.y + targetRectMin.height) <= rect.top) {
+      y = 0
+    }
+    else if ((position.y + targetRectMin.height) >= rect.bottom) {
+      y = 1
+    }
+    else {
+      y = ((position.y + targetRectMin.height) - rect.top) / (rect.bottom - rect.top)
+    }
+
+    return new Point({ x, y })
   }
 
   /**
@@ -145,15 +264,22 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   protected updateSizeInfo() {
     super.updateSizeInfo()
 
+    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+
+    if (!scrollTarget) return
+
+    const targetRectMin = Rect.from(scrollTarget)
+    const targetRectMax = Rect.from(scrollTarget, { overflow: true })
     const aggregatedScrollBreaks = new Size([this.aggregateHorizontalScrollBreaks(), this.aggregateVerticalScrollBreaks()])
-    const targetMaxSize = this.dirtyInfo[DirtyType.SIZE]?.targetMaxSize as Size
 
-    if (!targetMaxSize) return
+    if (!targetRectMin || !targetRectMax) return
 
-    const targetAggregatedMaxSize = targetMaxSize.add(aggregatedScrollBreaks)
+    const targetAggregatedMaxSize = targetRectMax.size.add(aggregatedScrollBreaks)
 
     this.dirtyInfo[DirtyType.SIZE] = {
       ...this.dirtyInfo[DirtyType.SIZE] || {},
+      targetMinSize: targetRectMin.size,
+      targetMaxSize: targetRectMax.size,
       targetAggregatedMaxSize,
     }
 
@@ -168,6 +294,13 @@ export default class StickyScrollDelegate extends ScrollDelegate {
     const targetPos = this.stepToNaturalPosition(info.step)
 
     if (!targetPos) return
+
+    this.dirtyInfo[DirtyType.POSITION] = {
+      ...info,
+      minTargetPos: this.scrollTargetMinPosition,
+      maxTargetPos: this.scrollTargetMaxPosition,
+      targetPos,
+    }
 
     this.updateScrollTargetPosition(targetPos)
   }

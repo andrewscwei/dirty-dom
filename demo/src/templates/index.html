@@ -18,6 +18,16 @@
         width: 100%;
       }
 
+      #version {
+        position: fixed;
+        z-index: 100;
+        bottom: 0;
+        left: 0;
+        margin: 1rem;
+        width: auto;
+        color: #fff;
+      }
+
       #scroller {
         pointer-events: none;
         width: 100% !important;
@@ -60,5 +70,6 @@
       <div id='a-8' class='box' style='color: #333; background: rgba(255, 255, 255, 0.48);'>9</div>
       <div id='a-9' class='box' style='color: #333; background: rgba(255, 255, 255, 0.54);'>10</div>
     </main>
+    <div id='version'></div>
   </body>
 </html>

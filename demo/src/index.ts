@@ -7,8 +7,13 @@
 
 import debug from 'debug'
 import { DirtyInfo, DirtyType, Rect, StickyCrossScrollDelegate, StickyScrollDelegate, UpdateDelegate } from '../../build'
+import packageJson from '../../package.json'
 
 window.localStorage.debug = 'position,size,input'
+
+const versionNode = document.getElementById('version')
+
+versionNode!.innerHTML = `v${packageJson.version}`
 
 const mainNode = document.getElementById('main')
 

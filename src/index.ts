@@ -1,6 +1,7 @@
 export * from 'spase'
-export { default as CrossScrollDelegate } from './core/CrossScrollDelegate'
 export { default as ScrollDelegate } from './core/ScrollDelegate'
+export { default as StickyCrossScrollDelegate } from './core/StickyCrossScrollDelegate'
+export { default as StickyScrollDelegate } from './core/StickyScrollDelegate'
 export { default as UpdateDelegate } from './core/UpdateDelegate'
 export { default as DirtyType } from './enums/DirtyType'
 export { default as EventType } from './enums/EventType'

@@ -1,7 +1,8 @@
 import { Point, Size } from 'spase'
-import ScrollDelegate from './ScrollDelegate'
+import StickyScrollDelegate from './StickyScrollDelegate'
 
-export default class CrossScrollDelegate extends ScrollDelegate {
+export default class StickyCrossScrollDelegate extends StickyScrollDelegate {
+
   /** @inheritdoc */
   protected stepToVirtualPosition(step: Point) {
     return super.stepToVirtualPosition(step.invert())

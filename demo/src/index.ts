@@ -6,13 +6,13 @@
  */
 
 import debug from 'debug'
-import { CrossScrollDelegate, DirtyInfo, DirtyType, Rect, ScrollDelegate, UpdateDelegate } from '../../build'
+import { DirtyInfo, DirtyType, Rect, StickyCrossScrollDelegate, StickyScrollDelegate, UpdateDelegate } from '../../build'
 
 window.localStorage.debug = 'position,size,input'
 
 const mainNode = document.getElementById('main')
 
-const scrollDelegate = new ScrollDelegate({
+const stickyScrollDelegate = new StickyScrollDelegate({
   update(info: DirtyInfo, delegate: UpdateDelegate) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info
 
@@ -26,9 +26,9 @@ const scrollDelegate = new ScrollDelegate({
   },
 })
 
-scrollDelegate.scrollTarget = () => document.getElementById('main')
-scrollDelegate.scrollContainer = () => document.getElementById('scroller')
-scrollDelegate.scrollBreaks = info => {
+stickyScrollDelegate.scrollTarget = () => document.getElementById('main')
+stickyScrollDelegate.scrollContainer = () => document.getElementById('scroller')
+stickyScrollDelegate.scrollBreaks = info => {
   const { height: h } = Rect.from(mainNode)!;
 
   return {
@@ -42,7 +42,7 @@ scrollDelegate.scrollBreaks = info => {
   };
 };
 
-const crossScrollDelegate = new CrossScrollDelegate({
+const stickyCrossScrollDelegate = new StickyCrossScrollDelegate({
   update(info: DirtyInfo, delegate: UpdateDelegate) {
     const { [DirtyType.POSITION]: position, [DirtyType.SIZE]: size, [DirtyType.INPUT]: input } = info
 
@@ -51,15 +51,15 @@ const crossScrollDelegate = new CrossScrollDelegate({
     }
 
     if (position) {
-      // console.log((delegate as ScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
+      // console.log((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
       // debug('position')(position);
     }
   },
 })
 
-crossScrollDelegate.scrollTarget = () => document.getElementById('main')
-crossScrollDelegate.scrollContainer = () => document.getElementById('scroller')
-crossScrollDelegate.scrollBreaks = info => {
+stickyCrossScrollDelegate.scrollTarget = () => document.getElementById('main')
+stickyCrossScrollDelegate.scrollContainer = () => document.getElementById('scroller')
+stickyCrossScrollDelegate.scrollBreaks = info => {
   const { width: w, height: h } = Rect.from(mainNode)!
 
   return {
@@ -73,9 +73,9 @@ crossScrollDelegate.scrollBreaks = info => {
   }
 }
 
-// scrollDelegate.init();
-crossScrollDelegate.init()
+// stickyScrollDelegate.init();
+stickyCrossScrollDelegate.init()
 
 window.addEventListener('click', () => {
-  crossScrollDelegate.scrollToBottom()
+  stickyCrossScrollDelegate.scrollToBottom()
 })

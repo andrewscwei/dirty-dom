@@ -1,6 +1,6 @@
 {
   "name": "dirty-dom",
-  "version": "5.1.2",
+  "version": "5.2.0",
   "description": "Micro library for handling dirty DOM updates",
   "main": "build/index.js",
   "scripts": {

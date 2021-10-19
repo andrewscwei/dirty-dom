@@ -3,18 +3,45 @@ import { ScrollOptions, typeIsWindow } from '../types'
 import cancelAnimationFrame from './cancelAnimationFrame'
 import requestAnimationFrame from './requestAnimationFrame'
 
+/**
+ * A type describing an active scrolling operation.
+ */
 export interface ScrollInstance {
+
+  /**
+   * The target element that is actively scrolling.
+   */
   target: Window | HTMLElement
-  animationFrame: number
+
+  /**
+   * The animation frame (from `requestAnimationFrame` or `setTimeout`) request ID.
+   */
+  animationFrameRequestId: number
+
+  /**
+   * Scrolling options.
+   */
   options: ScrollOptions
 }
 
-let scrollDict: { target: Window | HTMLElement; animationFrame: number; options: ScrollOptions }[] = []
+let scrollDict: { target: Window | HTMLElement; animationFrameRequestId: number; options: ScrollOptions }[] = []
 
+/**
+ * Scrolls to the top bound inside the target element.
+ *
+ * @param target The target element.
+ * @param options @see ScrollOptions
+ */
 export function scrollToTop(target: Window | HTMLElement = window, options?: ScrollOptions) {
   vscrollTo(0, target, options)
 }
 
+/**
+ * Scrolls  to the bottom bound inside the target element.
+ *
+ * @param target The target element.
+ * @param options @see ScrollOptions
+ */
 export function scrollToBottom(target: Window | HTMLElement = window, options?: ScrollOptions) {
   const frect = Rect.from(target, { overflow: true })
   const rect = typeIsWindow(target) ? Rect.fromViewport() : Rect.from(target)
@@ -26,10 +53,22 @@ export function scrollToBottom(target: Window | HTMLElement = window, options?: 
   vscrollTo(y, target, options)
 }
 
+/**
+ * Scrolls to the left bound inside the target element.
+ *
+ * @param target The target element.
+ * @param options @see ScrollOptions
+ */
 export function scrollToLeft(target: Window | HTMLElement = window, options?: ScrollOptions) {
   hscrollTo(0, target, options)
 }
 
+/**
+ * Scrolls to the right bound inside the target element.
+ *
+ * @param target The target element.
+ * @param options @see ScrollOptions
+ */
 export function scrollToRight(target: Window | HTMLElement = window, options?: ScrollOptions) {
   const frect = Rect.from(target, { overflow: true })
   const rect = typeIsWindow(target) ? Rect.fromViewport() : Rect.from(target)
@@ -41,16 +80,37 @@ export function scrollToRight(target: Window | HTMLElement = window, options?: S
   hscrollTo(x, target, options)
 }
 
+/**
+ * Horizontally scrolls to the specified `x` position inside the target element.
+ *
+ * @param x The `x` position to scroll to (relative to the target element's coordinate space).
+ * @param target The target element.
+ * @param options @see ScrollOptions
+ */
 export function hscrollTo(x: number, target: Window | HTMLElement = window, options?: ScrollOptions) {
   const pos = new Point([x, typeIsWindow(target) ? target.scrollY : target.scrollTop])
   scrollTo(pos, target, options)
 }
 
+/**
+ * Vertically scrolls to the specified `y` position inside the target element..
+ *
+ * @param y The `y` position to scroll to (relative to the target element's coordinate space).
+ * @param target The target element.
+ * @param options @see ScrollOptions
+ */
 export function vscrollTo(y: number, target: Window | HTMLElement = window, options?: ScrollOptions) {
   const pos = new Point([typeIsWindow(target) ? target.scrollX : target.scrollLeft, y])
   scrollTo(pos, target, options)
 }
 
+/**
+ * Scrolls to the specified `Point` inside the target element.
+ *
+ * @param position The target position.
+ * @param target The target element.
+ * @param param2 @see ScrollOptions
+ */
 export function scrollTo(position: Point, target: Window | HTMLElement = window, { easing = true, ...opts }: ScrollOptions = {}) {
   if (easing) {
     easeScrollTo(position, target, { easing, ...opts })
@@ -60,6 +120,12 @@ export function scrollTo(position: Point, target: Window | HTMLElement = window,
   }
 }
 
+/**
+ * Cancels all active scrolling operations (that are managed by `dirty-dom` inside the target
+ * element.
+ *
+ * @param target The target element.
+ */
 export function cancelScroll(target: Window | HTMLElement) {
   const n = scrollDict.length
   let index = -1
@@ -76,7 +142,7 @@ export function cancelScroll(target: Window | HTMLElement) {
 
   if (scrollInstance) {
     scrollInstance.options.onCancel?.()
-    cancelAnimationFrame(scrollInstance.animationFrame)
+    cancelAnimationFrame(scrollInstance.animationFrameRequestId)
   }
 
   if (index > -1) {
@@ -84,19 +150,28 @@ export function cancelScroll(target: Window | HTMLElement) {
   }
 }
 
+/**
+ * Cancels all active scrolling operations (that are managed by `dirty-dom`).
+ */
 export function cancelAllScrolls() {
   const n = scrollDict.length
 
   for (let i = 0; i < n; i++) {
     const scrollInstance = scrollDict[i]
     scrollInstance.options.onCancel?.()
-    cancelAnimationFrame(scrollInstance.animationFrame)
+    cancelAnimationFrame(scrollInstance.animationFrameRequestId)
   }
 
   scrollDict = []
 }
 
-
+/**
+ * Scrolls to the specified `Point` inside the target element linearly.
+ *
+ * @param position - The target position.
+ * @param target - The target element.
+ * @param options - @see ScrollOptions
+ */
 function linearScrollTo(position: Point, target: Window | HTMLElement = window, { duration = 400, easing = false, isOverwriteable = true, onProgress, onCancel, onComplete }: ScrollOptions = {}) {
   if (getScrollInstanceByTarget(target) && !isOverwriteable) return
 
@@ -122,12 +197,19 @@ function linearScrollTo(position: Point, target: Window | HTMLElement = window, 
 
     onProgress?.(elapsed / duration)
 
-    setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrame: requestAnimationFrame(step) })
+    setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
   }
 
-  setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrame: requestAnimationFrame(step) })
+  setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
 }
 
+/**
+ * Scrolls to the specified `Point` inside the target element with easing.
+ *
+ * @param position - The target position.
+ * @param target - The target element.
+ * @param options - @see ScrollOptions
+ */
 function easeScrollTo(position: Point, target: Window | HTMLElement = window, { duration = 400, easing = true, isOverwriteable = true, onProgress, onCancel, onComplete }: ScrollOptions = {}) {
   if (getScrollInstanceByTarget(target) && !isOverwriteable) return
 
@@ -164,12 +246,19 @@ function easeScrollTo(position: Point, target: Window | HTMLElement = window, { 
 
     onProgress?.(elapsed / duration)
 
-    setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrame: requestAnimationFrame(step) })
+    setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
   }
 
-  setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrame: requestAnimationFrame(step) })
+  setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
 }
 
+/**
+ * Retrieves the active scrolling operation (that is managed by `dirty-dom`), if any.
+ *
+ * @param target - The target element.
+ *
+ * @returns The active `ScrollInstance` if there is one.
+ */
 function getScrollInstanceByTarget(target: Window | HTMLElement): ScrollInstance | undefined {
   const n = scrollDict.length
 
@@ -184,16 +273,21 @@ function getScrollInstanceByTarget(target: Window | HTMLElement): ScrollInstance
   return undefined
 }
 
-function setScrollInstance({ target, options, animationFrame }: ScrollInstance) {
+/**
+ * Registers an active scrolling operation for an element to be managed by `dirty-dom`.
+ *
+ * @param scrollInstance - @see ScrollInstance
+ */
+function setScrollInstance({ target, options, animationFrameRequestId }: ScrollInstance) {
   const scrollInstance = getScrollInstanceByTarget(target)
 
   if (scrollInstance) {
-    cancelAnimationFrame(scrollInstance.animationFrame)
+    cancelAnimationFrame(scrollInstance.animationFrameRequestId)
     scrollInstance.options = options
-    scrollInstance.animationFrame = animationFrame
+    scrollInstance.animationFrameRequestId = animationFrameRequestId
   }
   else {
-    scrollDict.push({ target, options, animationFrame })
+    scrollDict.push({ target, options, animationFrameRequestId })
   }
 }
 

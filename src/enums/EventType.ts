@@ -1,7 +1,8 @@
 /**
- * All supported event types for the `UpdateDelegate` class.
+ * All supported event types of an `UpdateDelegate`.
  */
 enum EventType {
+
   /**
    * Event triggered on every frame.
    */

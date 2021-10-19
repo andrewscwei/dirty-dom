@@ -2,8 +2,14 @@ import UpdateDelegate from '../core/UpdateDelegate'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'
 
+/**
+ * Transforms a type also include `undefined` and `null`.
+ */
 type Nullable<T> = T | undefined | null
 
+/**
+ * A DOM element or window that will be monitored by an `UpdateDelegate` for update events.
+ */
 export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLElement)>
 
 /**
@@ -14,6 +20,9 @@ export type DirtyInfo = {
   [key in DirtyType]?: Nullable<{ [key: string]: any }>;
 }
 
+/**
+ * A type that delegates state updates to a `UpdateDelegate`, thus receiving update events.
+ */
 export interface UpdateDelegator {
 
   /**
@@ -63,6 +72,9 @@ export type ScrollBreak = Readonly<{
   length: number
 }>
 
+/**
+ * Options for a scrolling animation.
+ */
 export type ScrollOptions = Readonly<{
 
   /**
@@ -96,6 +108,10 @@ export type ScrollOptions = Readonly<{
   onComplete?: () => void
 }>
 
+/**
+ * A type used by an `UpdateDelegate` to describe which target element and what kind of events to
+ * listen for updates.
+ */
 export interface ResponsiveDescriptor {
 
   /**
@@ -114,6 +130,13 @@ export interface ResponsiveDescriptor {
   refreshRate?: number
 }
 
+/**
+ * Checks if an object is a `DirtyType`.
+ *
+ * @param val Any object.
+ *
+ * @returns `true` if the object is a `DirtyType`, `false` otherwise.
+ */
 export function typeIsDirtyType(val: any): val is DirtyType {
   if (isNaN(Number(val))) return false
 
@@ -124,10 +147,26 @@ export function typeIsDirtyType(val: any): val is DirtyType {
   return false
 }
 
+/**
+ * Checks if an object is an `EventType`.
+ *
+ * @param val Any object.
+ *
+ * @returns `true` if the object is a `EventType`, `false` otherwise.
+ */
 export function typeIsEventType(val: any): val is EventType {
   return Object.values(EventType).includes(val)
 }
 
+/**
+ * Checks if an object is a `Window`.
+ *
+ * @param val Any object.
+ *
+ * @returns `true` if the object is a `Window`, `false` otherwise.
+ */
 export function typeIsWindow(val: any): val is Window {
   return val === window
 }
+
+export * from 'spase'

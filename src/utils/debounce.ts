@@ -1,28 +1,30 @@
 /**
- * Returns a function that, as long as it continues to be invoked, will not be triggered. The
- * function will be called after it stops being called for N milliseconds. If 'leading' is passed,
- * the function will be triggered on the leading edge instead of the trailing.
+ * Returns a function that, as long as it continues to be invoked within the allotted `delay`, its
+ * wrapped function will not be triggered. The wrapped function will be invoked after the returned
+ * function stops being called for some milliseconds as defined by `delay`. If 'leading' is enabled,
+ * the wrapped function will be invoked on the leading edge instead of the trailing, meaning that it
+ * will first be triggered, then subsequent invocations will not occur until the `delay` has passed.
  *
- * @param method - Method to be debounced.
+ * @param method - Function to be debounced.
  * @param delay - Debounce rate in milliseconds.
- * @param leading - Indicates whether the method is triggered on the leading edge instead of the
- *                  trailing.
+ * @param leading - Indicates whether the function is triggered on the leading edge instead of the
+ *                  trailing edge.
  *
- * @return The debounced method.
+ * @return The debounced wrapper function.
  */
-export default function debounce(method: (...args: any[]) => void, delay = 0, leading = false): () => void {
+export default function debounce(fn: (...args: any[]) => void, delay = 0, leading = false): () => void {
   let timeout: number | undefined
 
   return function debounced(...args: any[]) {
     const later = () => {
       timeout = undefined
-      if (!leading) method(...args)
+      if (!leading) fn(...args)
     }
 
     const shouldCallNow = leading && !timeout
     window.clearTimeout(timeout)
     timeout = window.setTimeout(later, delay)
 
-    if (shouldCallNow) method.apply(context, args as any)
+    if (shouldCallNow) fn.apply(context, args as any)
   }
 }

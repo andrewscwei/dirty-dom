@@ -10,6 +10,7 @@ import requestAnimationFrame from '../utils/requestAnimationFrame'
  * Delegate for managing update calls of an object.
  */
 export default class UpdateDelegate {
+
   /**
    * Default refresh (debounce) rate in milliseconds.
    */

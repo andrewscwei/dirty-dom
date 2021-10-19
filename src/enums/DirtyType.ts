@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-namespace, no-redeclare */
 
 /**
- * Enum for DOM dirty types. Dirty types help identify what needs to be redrawn or updated in the
- * DOM.
+ * Enum for DOM dirty types. Dirty types help `UpdateDelegate`s identify what needs to be redrawn or
+ * updated in the DOM.
  */
 enum DirtyType {
 
@@ -78,6 +78,7 @@ enum DirtyType {
 }
 
 namespace DirtyType {
+
   /**
    * Gets the name of the dirty type.
    *

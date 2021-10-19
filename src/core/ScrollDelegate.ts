@@ -6,6 +6,9 @@ import { DirtyInfo, ResponsiveDescriptor, ScrollOptions, typeIsWindow, UpdateDel
 import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrollToTop, vscrollTo } from '../utils/scroll'
 import UpdateDelegate from './UpdateDelegate'
 
+/**
+ * A specific type of `UpdateDelegate` that has position and size update events set up.
+ */
 export default class ScrollDelegate extends UpdateDelegate {
 
   protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
@@ -30,7 +33,8 @@ export default class ScrollDelegate extends UpdateDelegate {
   protected scrollTargetGetter?: () => HTMLElement | undefined | null
 
   /**
-   * Creates a new `ScrollDelegate` instance.
+   * Creates a new `ScrollDelegate` instance. If descriptors are not specified, this instance will
+   * be automatically set up to listen for size and position update events of the window.
    *
    * @param delegator - The object to create this scroll delegate for.
    * @param descriptors - Map of responsive descriptors.

@@ -168,5 +168,3 @@ export function typeIsEventType(val: any): val is EventType {
 export function typeIsWindow(val: any): val is Window {
   return val === window
 }
-
-export * from 'spase'

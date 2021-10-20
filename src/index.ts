@@ -1,4 +1,3 @@
-export * from 'spase'
 export { default as ScrollDelegate } from './core/ScrollDelegate'
 export { default as StickyCrossScrollDelegate } from './core/StickyCrossScrollDelegate'
 export { default as StickyScrollDelegate } from './core/StickyScrollDelegate'

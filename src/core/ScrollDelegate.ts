@@ -1,5 +1,4 @@
 import { Point, Rect } from 'spase'
-import { PointDescriptor } from 'spase/build/core/Point'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'
 import { DirtyInfo, ResponsiveDescriptor, ScrollOptions, typeIsWindow, UpdateDelegator } from '../types'

@@ -1,5 +1,4 @@
-import { Point, Rect, Size } from 'spase'
-import { PointDescriptor } from 'spase/build/core/Point'
+import { Point, PointDescriptor, Rect, Size } from 'spase'
 import { ScrollDelegate } from '..'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'

@@ -8,6 +8,7 @@ Micro library for handling dirty DOM updates frame-by-frame.
 import { DirtyType, EventType, UpdateDelegate } from 'dirty-dom';
 
 class Foo {
+
   get bar() {
     return this._bar;
   }

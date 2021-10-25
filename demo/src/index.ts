@@ -6,7 +6,8 @@
  */
 
 import debug from 'debug'
-import { DirtyInfo, DirtyType, Rect, StickyCrossScrollDelegate, StickyScrollDelegate, UpdateDelegate } from '../../build'
+import { Rect } from 'spase'
+import { DirtyInfo, DirtyType, StickyCrossScrollDelegate, StickyScrollDelegate, UpdateDelegate } from '../../build'
 import packageJson from '../../package.json'
 
 window.localStorage.debug = 'position,size,input'
@@ -56,7 +57,7 @@ const stickyCrossScrollDelegate = new StickyCrossScrollDelegate({
     }
 
     if (position) {
-      // console.log((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
+      // debug('position')((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, position.step));
       // debug('position')(position);
     }
   },

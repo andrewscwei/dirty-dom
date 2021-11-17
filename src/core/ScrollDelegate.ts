@@ -1,7 +1,7 @@
 import { Point, Rect } from 'spase'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'
-import { DirtyInfo, ResponsiveDescriptor, ScrollOptions, typeIsWindow, UpdateDelegator } from '../types'
+import { DirtyInfo, ResponsiveDescriptor, ScrollOptions, typeIsWindow } from '../types'
 import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrollToTop, vscrollTo } from '../utils/scroll'
 import UpdateDelegate from './UpdateDelegate'
 
@@ -30,11 +30,11 @@ export default class ScrollDelegate extends UpdateDelegate {
    * Creates a new `ScrollDelegate` instance. If descriptors are not specified, this instance will
    * be automatically set up to listen for size and position update events of the window.
    *
-   * @param delegator - The object to create this scroll delegate for.
+   * @param updateHandler - The handler to invoke upon every update event.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(delegator: UpdateDelegator, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
-    super(delegator, descriptors)
+  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
+    super(updateHandler, descriptors)
   }
 
   /**

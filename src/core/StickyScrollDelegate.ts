@@ -1,8 +1,9 @@
 import { Point, PointDescriptor, Rect, Size } from 'spase'
-import { ScrollDelegate } from '..'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'
-import { ResponsiveDescriptor, ScrollBreak, ScrollBreakDescriptor, UpdateDelegator } from '../types'
+import { DirtyInfo, ResponsiveDescriptor, ScrollBreak, ScrollBreakDescriptor } from '../types'
+import ScrollDelegate from './ScrollDelegate'
+import UpdateDelegate from './UpdateDelegate'
 
 /**
  * A `StickyScrollDelegate` is subclass of `ScrollDelegate` that allows its scroll target to "stick"
@@ -40,11 +41,11 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Creates a new `StickyScrollDelegate` instance.
    *
-   * @param delegator - The object to create this scroll delegate for.
+   * @param updateHandler - The handler to invoke upon every update event.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(delegator: UpdateDelegator, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
-    super(delegator, descriptors)
+  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
+    super(updateHandler, descriptors)
   }
 
   /**
@@ -52,7 +53,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    *
    * @return Minimum postiion of the scroll target.
    */
-   get scrollTargetMinPosition(): Point | null {
+  get scrollTargetMinPosition(): Point | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
     if (!scrollTarget) return null
     return new Point([0, 0])
@@ -118,7 +119,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    *
    * @return The relative `Rect`.
    */
-   getRelativeRectOfChildAt(index: number): Rect | null {
+  getRelativeRectOfChildAt(index: number): Rect | null {
     const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
     return Rect.fromChildAt(index, scrollTarget)
   }

@@ -1,4 +1,3 @@
-import UpdateDelegate from '../core/UpdateDelegate'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'
 
@@ -18,21 +17,6 @@ export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLEl
  */
 export type DirtyInfo = {
   [key in DirtyType]?: Nullable<{ [key: string]: any }>;
-}
-
-/**
- * A type that delegates state updates to a `UpdateDelegate`, thus receiving update events.
- */
-export interface UpdateDelegator {
-
-  /**
-   * Handler invoked whenever the `UpdateDelegate` emits an update event.
-   *
-   * @param info - An object describing what information was dirty since the last invocation of this
-   *               handler.
-   * @param delegate - The `UpdateDelegate` that invoked this handler.
-   */
-  update: (info: DirtyInfo, delegate: UpdateDelegate) => void
 }
 
 /**

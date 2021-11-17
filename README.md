@@ -22,7 +22,7 @@ class Foo {
 
   constructor {
     // Instantiate the update delegate, enable default handlers if needed.
-    updateDelegate = new UpdateDelegate(this, {
+    updateDelegate = new UpdateDelegate(this.update.bind(this), {
       // Invokes `update` on every frame.
       [EventType.ENTER_FRAME]: true,
 
@@ -159,6 +159,10 @@ class Foo {
 ```
 
 ## Release Notes
+
+### `v7.0.0`
+
+- `UpdateDelegator` is deprecated. Pass an `update` function directly to the constructor of `UpdateDelegate` instead.
 
 ### `v4.0.0`
 

@@ -1,7 +1,7 @@
 import { Point, Rect, Size } from 'spase'
 import DirtyType from '../enums/DirtyType'
 import EventType from '../enums/EventType'
-import { DirtyInfo, DirtyTarget, ResponsiveDescriptor, typeIsDirtyType, typeIsEventType, typeIsWindow, UpdateDelegator } from '../types'
+import { DirtyInfo, DirtyTarget, ResponsiveDescriptor, typeIsDirtyType, typeIsEventType, typeIsWindow } from '../types'
 import cancelAnimationFrame from '../utils/cancelAnimationFrame'
 import debounce from '../utils/debounce'
 import requestAnimationFrame from '../utils/requestAnimationFrame'
@@ -52,11 +52,14 @@ export default class UpdateDelegate {
   protected eventTargetDict: { [key in EventType]?: DirtyTarget } = {}
   protected eventHandlerDict: { [key in EventType]?: EventListener | number } = {}
 
-
   /**
-   * Delegator of this instance.
+   * Handler invoked whenever the `UpdateDelegate` emits an update event.
+   *
+   * @param info - An object describing what information was dirty since the last invocation of this
+   *               handler.
+   * @param delegate - The `UpdateDelegate` that invoked this handler.
    */
-  protected delegator: UpdateDelegator
+  protected updateHandler?: (info: DirtyInfo, delegate: UpdateDelegate) => void
 
   /**
    * Animation frame tracker.
@@ -71,13 +74,13 @@ export default class UpdateDelegate {
   private eventPropDict: { [key in EventType]?: any } = {}
 
   /**
-   * Creates a new UpdateDelegate instance.
+   * Creates a new `UpdateDelegate` instance.
    *
-   * @param delegator - The object to create this update delegate for.
+   * @param updateHandler - The handler to invoke upon every update event.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(delegator: UpdateDelegator, descriptors?: { [key in EventType]?: number | true | { target?: DirtyTarget; refreshRate?: number } }) {
-    this.delegator = delegator
+  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors?: { [key in EventType]?: number | true | { target?: DirtyTarget; refreshRate?: number } }) {
+    this.updateHandler = updateHandler
     this.responsivenessTable = descriptors
   }
 
@@ -127,7 +130,7 @@ export default class UpdateDelegate {
   }
 
   /**
-   * Destroys all resources allocated by this UpdateDelegate instance.
+   * Destroys all resources allocated by this `UpdateDelegate` instance.
    */
   deinit() {
     if (this.pendingAnimationFrame !== undefined) {
@@ -405,7 +408,7 @@ export default class UpdateDelegate {
       cancelAnimationFrame(this.pendingAnimationFrame)
     }
 
-    if (this.delegator) {
+    if (this.updateHandler) {
       const nextInfo: DirtyInfo = {}
 
       for (const dirtyType in this.dirtyInfo) {
@@ -416,7 +419,7 @@ export default class UpdateDelegate {
         }
       }
 
-      this.delegator.update.call(this.delegator, nextInfo, this)
+      this.updateHandler(nextInfo, this)
     }
 
     // Reset the dirty info of all types.

@@ -1,29 +1,30 @@
 name: CD
 on:
   push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+
+    tags: ["v*"]
   release:
     types: [published]
-
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    container: node:16.3.0
+    container: node:17.5.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Cache Node modules
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node-modules-
+          key: ${{ runner.os }}-build-npm-cache-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-npm-cache-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Install Node modules
         run: npm install
       - name: Build
-        run: BUILD_NUMBER=$GITHUB_SHA npm run build
+        run: npm run build
       - name: Pack
         run: .github/workflows/pack.sh
       - name: Persist package
@@ -40,16 +41,19 @@ jobs:
     name: Test
     needs: [build]
     runs-on: ubuntu-latest
-    container: node:16.3.0
+    container: node:17.5.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Cache Node modules
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node-modules-
+          key: ${{ runner.os }}-build-npm-cache-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-npm-cache-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Install NPM dependencies
         run: npm install
       - name: Restore build dir
@@ -62,22 +66,35 @@ jobs:
     name: Deploy
     needs: [test]
     runs-on: ubuntu-latest
-    container: node:16.3.0
+    container: node:17.5.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
       - name: Cache Node modules
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node-modules-
+          key: ${{ runner.os }}-build-npm-cache-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-npm-cache-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Install NPM dependencies
         run: npm install
       - name: Restore build dir
         uses: actions/download-artifact@v1
         with:
           name: build
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body_path: RELEASE.md
+          draft: false
+          prerelease: false
       - name: Deploy to NPM
         run: .github/workflows/deploy_to_npm.sh
         env:

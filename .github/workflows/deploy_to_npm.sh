@@ -4,5 +4,10 @@
 # - NPM_AUTH: NPM auth token
 
 echo "//registry.npmjs.org/:_authToken=$NPM_AUTH" >> ~/.npmrc
-npm publish
-echo "Successfully published to NPM"
+
+if npm publish; then
+  echo "Successfully published to NPM"
+else
+  echo "Failed to publish to NPM"
+  exit 1
+fi

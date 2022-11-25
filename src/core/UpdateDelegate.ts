@@ -10,7 +10,6 @@ import requestAnimationFrame from '../utils/requestAnimationFrame'
  * Delegate for managing update calls of an object.
  */
 export default class UpdateDelegate {
-
   /**
    * Default refresh (debounce) rate in milliseconds.
    */
@@ -49,14 +48,16 @@ export default class UpdateDelegate {
   }
 
   protected dirtyInfo: DirtyInfo = {}
+
   protected eventTargetDict: { [key in EventType]?: DirtyTarget } = {}
+
   protected eventHandlerDict: { [key in EventType]?: EventListener | number } = {}
 
   /**
    * Handler invoked whenever the `UpdateDelegate` emits an update event.
    *
-   * @param info - An object describing what information was dirty since the last invocation of this
-   *               handler.
+   * @param info - An object describing what information was dirty since the
+   *               last invocation of this handler.
    * @param delegate - The `UpdateDelegate` that invoked this handler.
    */
   protected updateHandler?: (info: DirtyInfo, delegate: UpdateDelegate) => void
@@ -70,7 +71,9 @@ export default class UpdateDelegate {
    * Cache.
    */
   private dirtyTable = 0
+
   private responsivenessTable?: { [key in EventType]?: number | true | { target?: DirtyTarget; refreshRate?: number } }
+
   private eventPropDict: { [key in EventType]?: any } = {}
 
   /**
@@ -87,7 +90,7 @@ export default class UpdateDelegate {
   /**
    * Gets the current viewport Rect of the window.
    *
-   * @return Viewport Rect.
+   * @returns Viewport Rect.
    */
   get viewport(): Rect {
     return Rect.fromViewport()
@@ -179,50 +182,52 @@ export default class UpdateDelegate {
    *
    * @param dirtyType - Dirty type.
    *
-   * @return `true` if dirty, `false` otherwise.
+   * @returns `true` if dirty, `false` otherwise.
    */
   isDirty(dirtyType: DirtyType): boolean {
     switch (dirtyType) {
-    case DirtyType.NONE:
-    case DirtyType.ALL:
-      return (this.dirtyTable === dirtyType)
-    default:
-      return ((dirtyType & this.dirtyTable) !== 0)
+      case DirtyType.NONE:
+      case DirtyType.ALL:
+        return this.dirtyTable === dirtyType
+      default:
+        return (dirtyType & this.dirtyTable) !== 0
     }
   }
 
   /**
-   * Sets a dirty type as dirty, consequently invoking an update on the next animation frame.
+   * Sets a dirty type as dirty, consequently invoking an update on the next
+   * animation frame.
    *
    * @param dirtyType - The dirty type to set.
-   * @param validateNow - Determines if the update should be validated right away instead of on the
-   *                      next animation frame.
+   * @param validateNow - Determines if the update should be validated right
+   *                      away instead of on the next animation frame.
    */
   setDirty(dirtyType: DirtyType, validateNow = false) {
     if (this.isDirty(dirtyType) && !validateNow) return
 
     switch (dirtyType) {
-    case DirtyType.NONE:
-      this.dirtyTable = DirtyType.NONE
-      this.dirtyInfo = {}
-      return
-    case DirtyType.ALL:
-      this.dirtyTable = DirtyType.ALL
-      this.dirtyInfo = {
-        ...((this.constructor as any).DEFAULT_DIRTY_INFO),
-        ...this.dirtyInfo,
-      }
+      case DirtyType.NONE:
+        this.dirtyTable = DirtyType.NONE
+        this.dirtyInfo = {}
 
-      this.updateSizeInfo()
-      this.updatePositionInfo(this.eventTargetDict[EventType.SCROLL])
+        return
+      case DirtyType.ALL:
+        this.dirtyTable = DirtyType.ALL
+        this.dirtyInfo = {
+          ...(this.constructor as any).DEFAULT_DIRTY_INFO,
+          ...this.dirtyInfo,
+        }
 
-      break
-    default:
-      if (!this.dirtyInfo[dirtyType]) {
-        this.dirtyInfo[dirtyType] = ((this.constructor as any).DEFAULT_DIRTY_INFO)[dirtyType]
-      }
+        this.updateSizeInfo()
+        this.updatePositionInfo(this.eventTargetDict[EventType.SCROLL])
 
-      this.dirtyTable |= dirtyType
+        break
+      default:
+        if (!this.dirtyInfo[dirtyType]) {
+          this.dirtyInfo[dirtyType] = (this.constructor as any).DEFAULT_DIRTY_INFO[dirtyType]
+        }
+
+        this.dirtyTable |= dirtyType
     }
 
     if (validateNow) {
@@ -244,7 +249,7 @@ export default class UpdateDelegate {
    * @returns The dirty target if it exists.
    */
   protected getDirtyTarget(descriptor: DirtyTarget): Window | HTMLElement | undefined | null {
-    return (typeof descriptor === 'function') ? descriptor() : descriptor
+    return typeof descriptor === 'function' ? descriptor() : descriptor
   }
 
   /**
@@ -254,7 +259,7 @@ export default class UpdateDelegate {
    */
   protected updatePositionInfo(reference?: DirtyTarget) {
     const refEl = this.getDirtyTarget(reference) || window
-    const refRect = (typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop }))
+    const refRect = typeIsWindow(refEl) ? Rect.fromViewport() : (Rect.from(refEl) || new Rect()).clone({ x: refEl.scrollLeft, y: refEl.scrollTop })
     const refRectMin = refRect.clone({ x: 0, y: 0 })
     const refRectFull = Rect.from(refEl, { overflow: true })
 
@@ -305,8 +310,8 @@ export default class UpdateDelegate {
   }
 
   /**
-   * Sets up the responsiveness to the provided target. Only the following event types support a
-   * custom target, the rest use window as the target:
+   * Sets up the responsiveness to the provided target. Only the following event
+   * types support a custom target, the rest use window as the target:
    *   1. 'scroll'
    *   2. 'wheel'
    *   3. 'mousemove'
@@ -320,7 +325,7 @@ export default class UpdateDelegate {
       if (this.eventHandlerDict[EventType.RESIZE]) {
         const t = this.getDirtyTarget(this.eventTargetDict[EventType.RESIZE])
 
-        if (!t || (t === window)) {
+        if (!t || t === window) {
           window.removeEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener)
           window.removeEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener)
         }
@@ -332,7 +337,7 @@ export default class UpdateDelegate {
       this.eventTargetDict[EventType.RESIZE] = target
 
       if (target === window) {
-        this.eventHandlerDict[EventType.RESIZE] = (refreshRate === 0.0) ? this.onWindowResize.bind(this) : debounce(this.onWindowResize.bind(this), refreshRate)
+        this.eventHandlerDict[EventType.RESIZE] = refreshRate === 0.0 ? this.onWindowResize.bind(this) : debounce(this.onWindowResize.bind(this), refreshRate)
         window.addEventListener('resize', this.eventHandlerDict[EventType.RESIZE] as EventListener)
         window.addEventListener('orientationchange', this.eventHandlerDict[EventType.RESIZE] as EventListener)
       }
@@ -343,21 +348,21 @@ export default class UpdateDelegate {
 
     if (isResponsiveToEverything || eventTypes.indexOf(EventType.SCROLL) > -1) {
       if (this.eventHandlerDict[EventType.SCROLL]) (this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]) || window).removeEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener)
-      this.eventHandlerDict[EventType.SCROLL] = (refreshRate === 0.0) ? this.onScroll.bind(this) : debounce(this.onScroll.bind(this), refreshRate)
+      this.eventHandlerDict[EventType.SCROLL] = refreshRate === 0.0 ? this.onScroll.bind(this) : debounce(this.onScroll.bind(this), refreshRate)
       this.eventTargetDict[EventType.SCROLL] = target
       this.getDirtyTarget(target)?.addEventListener('scroll', this.eventHandlerDict[EventType.SCROLL] as EventListener)
     }
 
     if (isResponsiveToEverything || eventTypes.indexOf(EventType.MOUSE_WHEEL) > -1) {
       if (this.eventHandlerDict[EventType.MOUSE_WHEEL]) (this.getDirtyTarget(this.eventTargetDict[EventType.MOUSE_WHEEL]) || window).removeEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener)
-      this.eventHandlerDict[EventType.MOUSE_WHEEL] = ((refreshRate === 0.0) ? this.onWindowMouseWheel.bind(this) : debounce(this.onWindowMouseWheel.bind(this), refreshRate)) as EventListener
+      this.eventHandlerDict[EventType.MOUSE_WHEEL] = (refreshRate === 0.0 ? this.onWindowMouseWheel.bind(this) : debounce(this.onWindowMouseWheel.bind(this), refreshRate)) as EventListener
       this.eventTargetDict[EventType.MOUSE_WHEEL] = target
       this.getDirtyTarget(target)?.addEventListener('wheel', this.eventHandlerDict[EventType.MOUSE_WHEEL] as EventListener)
     }
 
     if (isResponsiveToEverything || eventTypes.indexOf(EventType.MOUSE_MOVE) > -1) {
       if (this.eventHandlerDict[EventType.MOUSE_MOVE]) (this.getDirtyTarget(this.eventTargetDict[EventType.MOUSE_MOVE]) || window).removeEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener)
-      this.eventHandlerDict[EventType.MOUSE_MOVE] = ((refreshRate === 0.0) ? this.onWindowMouseMove.bind(this) : debounce(this.onWindowMouseMove.bind(this), refreshRate)) as EventListener
+      this.eventHandlerDict[EventType.MOUSE_MOVE] = (refreshRate === 0.0 ? this.onWindowMouseMove.bind(this) : debounce(this.onWindowMouseMove.bind(this), refreshRate)) as EventListener
       this.eventTargetDict[EventType.MOUSE_MOVE] = target
       this.getDirtyTarget(target)?.addEventListener('mousemove', this.eventHandlerDict[EventType.MOUSE_MOVE] as EventListener)
     }
@@ -370,7 +375,7 @@ export default class UpdateDelegate {
         else if (win.DeviceMotionEvent) window.removeEventListener('devicemotion', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener)
       }
 
-      this.eventHandlerDict[EventType.ORIENTATION_CHANGE] = (refreshRate === 0.0) ? this.onWindowOrientationChange.bind(this) : debounce(this.onWindowOrientationChange.bind(this), refreshRate)
+      this.eventHandlerDict[EventType.ORIENTATION_CHANGE] = refreshRate === 0.0 ? this.onWindowOrientationChange.bind(this) : debounce(this.onWindowOrientationChange.bind(this), refreshRate)
 
       if (win.DeviceOrientationEvent) window.addEventListener('deviceorientation', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener)
       else if (win.DeviceMotionEvent) window.addEventListener('devicemotion', this.eventHandlerDict[EventType.ORIENTATION_CHANGE] as EventListener)

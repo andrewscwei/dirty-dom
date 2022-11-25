@@ -6,10 +6,10 @@ import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrol
 import UpdateDelegate from './UpdateDelegate'
 
 /**
- * A specific type of `UpdateDelegate` that has position and size update events set up.
+ * A specific type of `UpdateDelegate` that has position and size update events
+ * set up.
  */
 export default class ScrollDelegate extends UpdateDelegate {
-
   protected static DEFAULT_DIRTY_INFO: DirtyInfo = {
     ...UpdateDelegate.DEFAULT_DIRTY_INFO,
     [DirtyType.SIZE]: {
@@ -27,20 +27,21 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Creates a new `ScrollDelegate` instance. If descriptors are not specified, this instance will
-   * be automatically set up to listen for size and position update events of the window.
+   * Creates a new `ScrollDelegate` instance. If descriptors are not specified,
+   * this instance will be automatically set up to listen for size and position
+   * update events of the window.
    *
    * @param updateHandler - The handler to invoke upon every update event.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
+  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: Record<string, number | true | ResponsiveDescriptor> = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
     super(updateHandler, descriptors)
   }
 
   /**
    * Gets the minimum scroll position of the reference element.
    *
-   * @return Minimum scroll position.
+   * @returns Minimum scroll position.
    */
   get minPosition(): Point {
     return new Point([0, 0])
@@ -49,7 +50,7 @@ export default class ScrollDelegate extends UpdateDelegate {
   /**
    * Gets the maximum scroll position of the reference element.
    *
-   * @return Maximum scroll position.
+   * @returns Maximum scroll position.
    */
   get maxPosition(): Point {
     const refEl = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL]) || window
@@ -64,9 +65,10 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Scrolls the scroll event listener to the top of its minimum vertical scroll position.
+   * Scrolls the scroll event listener to the top of its minimum vertical scroll
+   * position.
    *
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   scrollToTop(options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])
@@ -75,9 +77,10 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Scrolls the scroll event listener to the bottom of its maximum vertical scroll position.
+   * Scrolls the scroll event listener to the bottom of its maximum vertical
+   * scroll position.
    *
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   scrollToBottom(options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])
@@ -86,9 +89,10 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Scrolls the scroll event listener to the left of its maximum horizontal scroll position.
+   * Scrolls the scroll event listener to the left of its maximum horizontal
+   * scroll position.
    *
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   scrollToLeft(options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])
@@ -97,9 +101,10 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Scrolls the scroll event listener to the right of its maximum horizontal scroll position.
+   * Scrolls the scroll event listener to the right of its maximum horizontal
+   * scroll position.
    *
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   scrollToRight(options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])
@@ -111,7 +116,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * Scrolls the scroll event listener to the specified position.
    *
    * @param position - The position to scroll to.
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   scrollTo(position: Point, options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])
@@ -125,7 +130,7 @@ export default class ScrollDelegate extends UpdateDelegate {
    * x-coordinate.
    *
    * @param x - The x-coordinate to scroll to.
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   hscrollTo(x: number, options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])
@@ -135,10 +140,11 @@ export default class ScrollDelegate extends UpdateDelegate {
   }
 
   /**
-   * Scrolls the scroll event listener horizontally to the specified y-coordinate.
+   * Scrolls the scroll event listener horizontally to the specified
+   * y-coordinate.
    *
    * @param y - The y-coordinate to scroll to.
-   * @param options - @see ScrollOptions
+   * @param options - See {@link ScrollOptions}.
    */
   vscrollTo(y: number, options?: ScrollOptions) {
     const target = this.getDirtyTarget(this.eventTargetDict[EventType.SCROLL])

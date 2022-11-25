@@ -21,11 +21,11 @@ const mainNode = document.getElementById('main')
 const stickyScrollDelegate = new StickyScrollDelegate(
   ({ [DirtyType.POSITION]: dirtyPosition, [DirtyType.SIZE]: dirtySize, [DirtyType.INPUT]: dirtyInput }: DirtyInfo) => {
     if (dirtySize) {
-      // debug('size')(dirtySize);
+      // Debug('size')(dirtySize);
     }
 
     if (dirtyPosition) {
-      // debug('position')(dirtyPosition);
+      // Debug('position')(dirtyPosition);
     }
   },
 )
@@ -53,8 +53,8 @@ const stickyCrossScrollDelegate = new StickyCrossScrollDelegate(
     }
 
     if (dirtyPosition) {
-      // debug('position')((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, dirtyPosition.step));
-      // debug('position')(dirtyPosition);
+      // Debug('position')((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, dirtyPosition.step));
+      // Debug('position')(dirtyPosition);
     }
   },
 )
@@ -75,7 +75,7 @@ stickyCrossScrollDelegate.scrollBreaks = info => {
   }
 }
 
-// stickyScrollDelegate.init();
+// StickyScrollDelegate.init();
 stickyCrossScrollDelegate.init()
 
 window.addEventListener('click', () => {

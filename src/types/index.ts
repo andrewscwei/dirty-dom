@@ -7,20 +7,22 @@ import EventType from '../enums/EventType'
 type Nullable<T> = T | undefined | null
 
 /**
- * A DOM element or window that will be monitored by an `UpdateDelegate` for update events.
+ * A DOM element or window that will be monitored by an `UpdateDelegate` for
+ * update events.
  */
 export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLElement)>
 
 /**
- * A type that describes what information was dirty, as categorized (and keyed) by affected
- * `DirtyType`s.
+ * A type that describes what information was dirty, as categorized (and keyed)
+ * by affected `DirtyType`s.
  */
 export type DirtyInfo = {
-  [key in DirtyType]?: Nullable<{ [key: string]: any }>;
+  [key in DirtyType]?: Nullable<Record<string, any>>;
 }
 
 /**
- * An object that describes all the x and y `ScrollBreak`s for a `ScrollDelegate`'s scroll target.
+ * An object that describes all the x and y `ScrollBreak`s for a
+ * `ScrollDelegate`'s scroll target.
  */
 export type ScrollBreakDescriptor = Readonly<{
 
@@ -36,22 +38,24 @@ export type ScrollBreakDescriptor = Readonly<{
 }>
 
 /**
- * An object interpreted by a `ScrollDelegate` that defines where a scroll break should be. A scroll
- * break is an x or y position along the scroll path where perceived scrolling freezes until the
- * the scroll target continues to scroll further for the specified `length` pixels.
+ * An object interpreted by a `ScrollDelegate` that defines where a scroll break
+ * should be. A scroll break is an x or y position along the scroll path where
+ * perceived scrolling freezes until the the scroll target continues to scroll
+ * further for the specified `length` pixels.
  */
 export type ScrollBreak = Readonly<{
 
   /**
-   * The position where the scroll break should occur, expressed as a `step`, which is constrained
-   * between the values `0.0` and `1.0`, inclusive, with `0.0` being the start of the scroll
-   * container in the current axis and `1.0` being the end.
+   * The position where the scroll break should occur, expressed as a `step`,
+   * which is constrained between the values `0.0` and `1.0`, inclusive, with
+   * `0.0` being the start of the scroll container in the current axis and `1.0`
+   * being the end.
    */
   step: number
 
   /**
-   * The length of the scroll break. This is the number of pixels that needs to be scrolled to exit
-   * the scroll break.
+   * The length of the scroll break. This is the number of pixels that needs to
+   * be scrolled to exit the scroll break.
    */
   length: number
 }>
@@ -72,7 +76,8 @@ export type ScrollOptions = Readonly<{
   easing?: boolean
 
   /**
-   * Specifies if the scroll animation can be overwritten by a new one defined on the same target.
+   * Specifies if the scroll animation can be overwritten by a new one defined
+   * on the same target.
    */
   isOverwriteable?: boolean
 
@@ -93,8 +98,8 @@ export type ScrollOptions = Readonly<{
 }>
 
 /**
- * A type used by an `UpdateDelegate` to describe which target element and what kind of events to
- * listen for updates.
+ * A type used by an `UpdateDelegate` to describe which target element and what
+ * kind of events to listen for updates.
  */
 export interface ResponsiveDescriptor {
 

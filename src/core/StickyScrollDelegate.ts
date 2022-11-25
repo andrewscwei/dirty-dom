@@ -6,14 +6,14 @@ import ScrollDelegate from './ScrollDelegate'
 import UpdateDelegate from './UpdateDelegate'
 
 /**
- * A `StickyScrollDelegate` is subclass of `ScrollDelegate` that allows its scroll target to "stick"
- * to the brower in certain regions, as defined by its "scroll breaks". When the scroll target is
- * "stuck", it appears to have stopped moving, hence stuck in place,  while the browser scroll bar
- * continues to move. Only after the browser scrolls past a certain predefined point will the scroll
- * target "unstick" and start scrolling again.
+ * A `StickyScrollDelegate` is subclass of `ScrollDelegate` that allows its
+ * scroll target to "stick" to the brower in certain regions, as defined by its
+ * "scroll breaks". When the scroll target is "stuck", it appears to have
+ * stopped moving, hence stuck in place,  while the browser scroll bar continues
+ * to move. Only after the browser scrolls past a certain predefined point will
+ * the scroll target "unstick" and start scrolling again.
  */
 export default class StickyScrollDelegate extends ScrollDelegate {
-
   /**
    * Specifies if the scroll target position should automatically be updated.
    */
@@ -30,11 +30,12 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   private scrollContainerGetter?: () => HTMLElement | undefined | null
 
   /**
-   * Definied scroll break descriptors. A scroll break is a point in scrolling where the target
-   * holds its position still until the scroll break length is surprassed.
+   * Definied scroll break descriptors. A scroll break is a point in scrolling
+   * where the target holds its position still until the scroll break length is
+   * surprassed.
    *
-   * @param info - Object containing the minimum position and the maximum position of the scroll
-   *               target.
+   * @param info - Object containing the minimum position and the maximum
+   *               position of the scroll target.
    */
   private scrollBreakGetter?: (info: { minPos: Point; maxPos: Point }) => ScrollBreakDescriptor
 
@@ -44,28 +45,29 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * @param updateHandler - The handler to invoke upon every update event.
    * @param descriptors - Map of responsive descriptors.
    */
-  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: { [key: string]: number | true | ResponsiveDescriptor } = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
+  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: Record<string, number | true | ResponsiveDescriptor> = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
     super(updateHandler, descriptors)
   }
 
   /**
    * Gets the minimum position of the scroll target.
    *
-   * @return Minimum postiion of the scroll target.
+   * @returns Minimum postiion of the scroll target.
    */
   get scrollTargetMinPosition(): Point | null {
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
     if (!scrollTarget) return null
+
     return new Point([0, 0])
   }
 
   /**
    * Gets the maximum position of the scroll target.
    *
-   * @return Maximum position of the scroll target.
+   * @returns Maximum position of the scroll target.
    */
   get scrollTargetMaxPosition(): Point | null {
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
     if (!scrollTarget) return null
 
     const targetRectMin = Rect.from(scrollTarget, { reference: scrollTarget, overflow: false })
@@ -117,10 +119,11 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    *
    * @param index - Index of the child.
    *
-   * @return The relative `Rect`.
+   * @returns The relative `Rect`.
    */
   getRelativeRectOfChildAt(index: number): Rect | null {
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
+
     return Rect.fromChildAt(index, scrollTarget)
   }
 
@@ -130,11 +133,11 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * @param index - The index of the child in the scroll target.
    * @param currStep - The current overall scroll step.
    *
-   * @return The relative scroll step to the child.
+   * @returns The relative scroll step to the child.
    */
   getRelativeStepOfChildAt(index: number, currStep: Point | PointDescriptor): Point | null {
     const step = currStep instanceof Point ? currStep : new Point(currStep)
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
     const rect = Rect.fromChildAt(index, scrollTarget)
 
     if (!rect) return null
@@ -148,11 +151,11 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * @param rect - The Rect in the scroll target.
    * @param currStep - The current overall scroll step.
    *
-   * @return The relative scroll step to the Rect.
+   * @returns The relative scroll step to the Rect.
    */
   getRelativeStepOfRect(rect: Rect, currStep: Point | PointDescriptor): Point | null {
     const step = currStep instanceof Point ? currStep : new Point(currStep)
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
     const targetRectMin = Rect.from(scrollTarget)
     const position = this.stepToNaturalPosition(step)
 
@@ -161,24 +164,24 @@ export default class StickyScrollDelegate extends ScrollDelegate {
     let x = NaN
     let y = NaN
 
-    if ((position.x + targetRectMin.width) <= rect.left) {
+    if (position.x + targetRectMin.width <= rect.left) {
       x = 0
     }
-    else if ((position.x + targetRectMin.width) >= rect.right) {
+    else if (position.x + targetRectMin.width >= rect.right) {
       x = 1
     }
     else {
-      x = ((position.x + targetRectMin.width) - rect.left) / (rect.right - rect.left)
+      x = (position.x + targetRectMin.width - rect.left) / (rect.right - rect.left)
     }
 
-    if ((position.y + targetRectMin.height) <= rect.top) {
+    if (position.y + targetRectMin.height <= rect.top) {
       y = 0
     }
-    else if ((position.y + targetRectMin.height) >= rect.bottom) {
+    else if (position.y + targetRectMin.height >= rect.bottom) {
       y = 1
     }
     else {
-      y = ((position.y + targetRectMin.height) - rect.top) / (rect.bottom - rect.top)
+      y = (position.y + targetRectMin.height - rect.top) / (rect.bottom - rect.top)
     }
 
     return new Point({ x, y })
@@ -190,7 +193,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * @param index - Scroll break index.
    * @param currStep - The current overall scroll step.
    *
-   * @return The relative horizontal step.
+   * @returns The relative horizontal step.
    */
   getRelativeStepOfHorizontalScrollBreakAt(index: number, currStep: Point | PointDescriptor): number {
     const step = currStep instanceof Point ? currStep : new Point(currStep)
@@ -210,6 +213,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
 
     const aggregatedLengths = scrollBreaks.reduce((out, curr) => {
       if (curr.step < scrollBreak.step) return out + curr.length
+
       return out
     }, 0)
 
@@ -228,7 +232,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * @param index - Scroll break index.
    * @param currStep - The current overall scroll step.
    *
-   * @return The relative vertical step.
+   * @returns The relative vertical step.
    */
   getRelativeStepOfVerticalScrollBreakAt(index: number, currStep: Point | PointDescriptor): number {
     const step = currStep instanceof Point ? currStep : new Point(currStep)
@@ -248,6 +252,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
 
     const aggregatedLengths = scrollBreaks.reduce((out, curr) => {
       if (curr.step < scrollBreak.step) return out + curr.length
+
       return out
     }, 0)
 
@@ -264,7 +269,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   protected updateSizeInfo() {
     super.updateSizeInfo()
 
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
 
     if (!scrollTarget) return
 
@@ -311,7 +316,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * @param size - The size to apply to the scroll container.
    */
   protected updateScrollContainerSize(size: Size) {
-    const scrollContainer = this.scrollContainerGetter && this.scrollContainerGetter()
+    const scrollContainer = this.scrollContainerGetter ? this.scrollContainerGetter() : undefined
 
     if (!scrollContainer) return
 
@@ -327,22 +332,22 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   protected updateScrollTargetPosition(position: Point) {
     if (!this.shouldAutoUpdateScrollTarget) return
 
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
     if (!scrollTarget) return
 
     scrollTarget.style.transform = `translate3d(-${isNaN(position.x) ? 0 : position.x}px, -${isNaN(position.y) ? 0 : position.y}px, 0)`
   }
 
   /**
-   * Converts a scroll step to a virtual position. A virtual position is a coordinate in the scroll
-   * target that includes all scroll breaks.
+   * Converts a scroll step to a virtual position. A virtual position is a
+   * coordinate in the scroll target that includes all scroll breaks.
    *
-   * @param point - Scroll step.
+   * @param step - Scroll step.
    *
-   * @return The corresponding virtual position.
+   * @returns The corresponding virtual position.
    */
   protected stepToVirtualPosition(step?: Point): Point | null {
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
 
     if (!step || !scrollTarget) return null
 
@@ -363,29 +368,30 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
-   * Converts a scroll step to a natural position. A natural position is a coordinate in the scroll
-   * target that excludes all scroll breaks.
+   * Converts a scroll step to a natural position. A natural position is a
+   * coordinate in the scroll target that excludes all scroll breaks.
    *
    * @param step - Scroll step.
    *
-   * @return The corresponding natural position.
+   * @returns The corresponding natural position.
    */
   protected stepToNaturalPosition(step?: Point): Point | null {
     const virtualPosition = this.stepToVirtualPosition(step)
     if (!virtualPosition) return null
+
     return this.virtualPositionToNaturalPosition(virtualPosition)
   }
 
   /**
-   * Converts a virtual position to a scroll step. A virtual position is a coordinate in the scroll
-   * target that includes all scroll breaks.
+   * Converts a virtual position to a scroll step. A virtual position is a
+   * coordinate in the scroll target that includes all scroll breaks.
    *
-   * @param point - Virtual position.
+   * @param position - Virtual position.
    *
-   * @return The corresponding scroll step.
+   * @returns The corresponding scroll step.
    */
   protected virtualPositionToStep(position?: Point): Point | null {
-    const scrollTarget = this.scrollTargetGetter && this.scrollTargetGetter()
+    const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
 
     if (!position || !scrollTarget) return null
 
@@ -404,13 +410,14 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
-   * Converts a virtual position to a natural position. A virtual position is a coordinate in the
-   * scroll target that includes all scroll breaks, while a natural position is a coordinate in the
-   * scroll target that excludes all scroll breaks.
+   * Converts a virtual position to a natural position. A virtual position is a
+   * coordinate in the scroll target that includes all scroll breaks, while a
+   * natural position is a coordinate in the scroll target that excludes all
+   * scroll breaks.
    *
    * @param position - Virtual position.
    *
-   * @return The corresponding natural position.
+   * @returns The corresponding natural position.
    */
   protected virtualPositionToNaturalPosition(position?: Point): Point | null {
     if (!position) return null
@@ -468,7 +475,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Adds up and returns the total of all horizontal scroll break lengths.
    *
-   * @return The total of all horizontal scroll break lengths.
+   * @returns The total of all horizontal scroll break lengths.
    */
   private aggregateHorizontalScrollBreaks(): number {
     return (this.getScrollBreaks().x || []).reduce((out, curr) => out + curr.length, 0)
@@ -477,7 +484,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Adds up and returns the total of all vertical scroll break lengths.
    *
-   * @return The total of all vertical scroll break lengths.
+   * @returns The total of all vertical scroll break lengths.
    */
   private aggregateVerticalScrollBreaks(): number {
     return (this.getScrollBreaks().y || []).reduce((out, curr) => out + curr.length, 0)
@@ -500,9 +507,8 @@ export default class StickyScrollDelegate extends ScrollDelegate {
     for (let i = 0; i < n; i++) {
       const scrollBreak = ascScrollBreaks[i]
       const minY = scrollBreak.step * maxPosition.y + aggregatedLength
-      // const maxY = minY + scrollBreak.length
 
-      if ((step * maxPosition.y) <= minY) break
+      if (step * maxPosition.y <= minY) break
 
       aggregatedLength += scrollBreak.length
     }
@@ -511,12 +517,12 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
-   * Finds the nearest horizontal scroll break defined for this delegate without exceeding the
-   * provided virtual x-position.
+   * Finds the nearest horizontal scroll break defined for this delegate without
+   * exceeding the provided virtual x-position.
    *
    * @param position - The virtual x-position.
    *
-   * @return The nearest vertical scroll break.
+   * @returns The nearest vertical scroll break.
    */
   private findNearestHorizontalScrollBreakByVirtualPosition(position: number): ScrollBreak {
     const zero = { step: 0, length: 0 }
@@ -525,12 +531,12 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
-   * Finds the nearest vertical scroll break defined for this delegate without exceeding the
-   * provided virtual y-position.
+   * Finds the nearest vertical scroll break defined for this delegate without
+   * exceeding the provided virtual y-position.
    *
    * @param position - The virtual y-position.
    *
-   * @return The nearest vertical scroll break.
+   * @returns The nearest vertical scroll break.
    */
   private findNearestVerticalScrollBreakByVirtualPosition(position: number): ScrollBreak {
     const zero = { step: 0, length: 0 }
@@ -566,7 +572,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Gets all the scroll breaks defined for this delegate, sorted by step.
    *
-   * @return Descriptor of scroll breaks.
+   * @returns Descriptor of scroll breaks.
    */
   private getScrollBreaks(): ScrollBreakDescriptor {
     if (!this.scrollBreakGetter) return {}

@@ -1,6 +1,6 @@
 import CompressionWebpackPlugin from 'compression-webpack-plugin'
 import path from 'path'
-import { Configuration } from 'webpack'
+import type { Configuration } from 'webpack'
 import nodeExternals from 'webpack-node-externals'
 
 const cwd = path.join(__dirname, '../')

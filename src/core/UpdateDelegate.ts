@@ -1,15 +1,12 @@
 import { Point, Rect, Size } from 'spase'
-import DirtyType from '../enums/DirtyType'
-import EventType from '../enums/EventType'
-import { DirtyInfo, DirtyTarget, ResponsiveDescriptor, typeIsDirtyType, typeIsEventType, typeIsWindow } from '../types'
-import cancelAnimationFrame from '../utils/cancelAnimationFrame'
-import debounce from '../utils/debounce'
-import requestAnimationFrame from '../utils/requestAnimationFrame'
+import { DirtyType, EventType } from '../enums'
+import { typeIsDirtyType, typeIsEventType, typeIsWindow, type DirtyInfo, type DirtyTarget, type ResponsiveDescriptor } from '../types'
+import { cancelAnimationFrame, debounce, requestAnimationFrame } from '../utils'
 
 /**
  * Delegate for managing update calls of an object.
  */
-export default class UpdateDelegate {
+export class UpdateDelegate {
   /**
    * Default refresh (debounce) rate in milliseconds.
    */
@@ -54,11 +51,11 @@ export default class UpdateDelegate {
   protected eventHandlerDict: { [key in EventType]?: EventListener | number } = {}
 
   /**
-   * Handler invoked whenever the `UpdateDelegate` emits an update event.
+   * Handler invoked whenever the {@link UpdateDelegate} emits an update event.
    *
-   * @param info - An object describing what information was dirty since the
-   *               last invocation of this handler.
-   * @param delegate - The `UpdateDelegate` that invoked this handler.
+   * @param info An object describing what information was dirty since the last
+   *             invocation of this handler.
+   * @param delegate The {@link UpdateDelegate} that invoked this handler.
    */
   protected updateHandler?: (info: DirtyInfo, delegate: UpdateDelegate) => void
 
@@ -77,10 +74,10 @@ export default class UpdateDelegate {
   private eventPropDict: { [key in EventType]?: any } = {}
 
   /**
-   * Creates a new `UpdateDelegate` instance.
+   * Creates a new {@link UpdateDelegate} instance.
    *
-   * @param updateHandler - The handler to invoke upon every update event.
-   * @param descriptors - Map of responsive descriptors.
+   * @param updateHandler The handler to invoke upon every update event.
+   * @param descriptors Map of responsive descriptors.
    */
   constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors?: { [key in EventType]?: number | true | { target?: DirtyTarget; refreshRate?: number } }) {
     this.updateHandler = updateHandler
@@ -88,9 +85,9 @@ export default class UpdateDelegate {
   }
 
   /**
-   * Gets the current viewport Rect of the window.
+   * Gets the current viewport {@link Rect} of the window.
    *
-   * @returns Viewport Rect.
+   * @returns Viewport {@link Rect}.
    */
   get viewport(): Rect {
     return Rect.fromViewport()
@@ -133,7 +130,7 @@ export default class UpdateDelegate {
   }
 
   /**
-   * Destroys all resources allocated by this `UpdateDelegate` instance.
+   * Destroys all resources allocated by this {@link UpdateDelegate} instance.
    */
   deinit() {
     if (this.pendingAnimationFrame !== undefined) {
@@ -180,7 +177,7 @@ export default class UpdateDelegate {
   /**
    * Checks dirty status of a given dirty type.
    *
-   * @param dirtyType - Dirty type.
+   * @param dirtyType Dirty type.
    *
    * @returns `true` if dirty, `false` otherwise.
    */
@@ -198,9 +195,9 @@ export default class UpdateDelegate {
    * Sets a dirty type as dirty, consequently invoking an update on the next
    * animation frame.
    *
-   * @param dirtyType - The dirty type to set.
-   * @param validateNow - Determines if the update should be validated right
-   *                      away instead of on the next animation frame.
+   * @param dirtyType The dirty type to set.
+   * @param validateNow Determines if the update should be validated right away
+   *                    instead of on the next animation frame.
    */
   setDirty(dirtyType: DirtyType, validateNow = false) {
     if (this.isDirty(dirtyType) && !validateNow) return
@@ -244,7 +241,7 @@ export default class UpdateDelegate {
   /**
    * Gets the dirty target element based on its descriptor.
    *
-   * @param descriptor - The descriptor.
+   * @param descriptor The descriptor.
    *
    * @returns The dirty target if it exists.
    */
@@ -255,7 +252,7 @@ export default class UpdateDelegate {
   /**
    * Updates the dirty info for position.
    *
-   * @param reference - The reference element.
+   * @param reference The reference element.
    */
   protected updatePositionInfo(reference?: DirtyTarget) {
     const refEl = this.getDirtyTarget(reference) || window
@@ -316,7 +313,7 @@ export default class UpdateDelegate {
    *   2. 'wheel'
    *   3. 'mousemove'
    *
-   * @param params - @see ResponsiveDescriptor
+   * @param params @see ResponsiveDescriptor
    */
   private initResponsiveness({ target = window, refreshRate = (this.constructor as any).DEFAULT_REFRESH_RATE, eventTypes = [] }: ResponsiveDescriptor = {}) {
     const isResponsiveToEverything = eventTypes.length === 0
@@ -436,7 +433,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when the window resizes.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onWindowResize(event: Event) {
     this.updateSizeInfo()
@@ -461,7 +458,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when the window scrolls.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onScroll(event: Event) {
     this.updatePositionInfo(event.currentTarget as HTMLElement | Window)
@@ -471,7 +468,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when the mouse is moved in the window.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onWindowMouseMove(event: MouseEvent) {
     this.dirtyInfo[DirtyType.INPUT] = {
@@ -485,7 +482,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when the mouse wheel is spinning.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onWindowMouseWheel(event: WheelEvent) {
     this.dirtyInfo[DirtyType.INPUT] = {
@@ -537,7 +534,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when there is a key up event.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onWindowKeyUp(event: KeyboardEvent) {
     const prevInfo = this.dirtyInfo[DirtyType.INPUT] || {}
@@ -556,7 +553,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when there is a key down event.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onWindowKeyDown(event: KeyboardEvent) {
     const prevInfo = this.dirtyInfo[DirtyType.INPUT] || {}
@@ -575,7 +572,7 @@ export default class UpdateDelegate {
   /**
    * Handler invoked when there is a key press event.
    *
-   * @param event - The dispatched event.
+   * @param event The dispatched event.
    */
   private onWindowKeyPress(event: KeyboardEvent) {
     const prevInfo = this.dirtyInfo[DirtyType.INPUT] || {}

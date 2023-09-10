@@ -1,7 +1,7 @@
 /**
- * All supported event types of an `UpdateDelegate`.
+ * All supported event types of an {@link UpdateDelegate}.
  */
-enum EventType {
+export enum EventType {
   /**
    * Event triggered on every frame.
    */
@@ -52,5 +52,3 @@ enum EventType {
    */
   KEY_PRESS = 'keypress',
 }
-
-export default EventType

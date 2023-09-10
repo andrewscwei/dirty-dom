@@ -7,14 +7,14 @@
  * that it will first be triggered, then subsequent invocations will not occur
  * until the `delay` has passed.
  *
- * @param fn - Function to be debounced.
- * @param delay - Debounce rate in milliseconds.
- * @param leading - Indicates whether the function is triggered on the leading
- *                  edge instead of the trailing edge.
+ * @param fn Function to be debounced.
+ * @param delay Debounce rate in milliseconds.
+ * @param leading Indicates whether the function is triggered on the leading
+ *                edge instead of the trailing edge.
  *
  * @returns The debounced wrapper function.
  */
-export default function debounce(fn: (...args: any[]) => void, delay = 0, leading = false): () => void {
+export function debounce(fn: (...args: any[]) => void, delay = 0, leading = false): () => void {
   let timeout: number | undefined
 
   return (...args: any[]) => {

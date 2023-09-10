@@ -1,19 +1,18 @@
-import { Point, PointDescriptor, Rect, Size } from 'spase'
-import DirtyType from '../enums/DirtyType'
-import EventType from '../enums/EventType'
-import { DirtyInfo, ResponsiveDescriptor, ScrollBreak, ScrollBreakDescriptor } from '../types'
-import ScrollDelegate from './ScrollDelegate'
-import UpdateDelegate from './UpdateDelegate'
+import { Point, Rect, Size, type PointDescriptor } from 'spase'
+import { DirtyType, EventType } from '../enums'
+import { type DirtyInfo, type ResponsiveDescriptor, type ScrollBreak, type ScrollBreakDescriptor } from '../types'
+import { ScrollDelegate } from './ScrollDelegate'
+import { type UpdateDelegate } from './UpdateDelegate'
 
 /**
- * A `StickyScrollDelegate` is subclass of `ScrollDelegate` that allows its
- * scroll target to "stick" to the brower in certain regions, as defined by its
- * "scroll breaks". When the scroll target is "stuck", it appears to have
- * stopped moving, hence stuck in place,  while the browser scroll bar continues
- * to move. Only after the browser scrolls past a certain predefined point will
- * the scroll target "unstick" and start scrolling again.
+ * A {@link StickyScrollDelegate} is subclass of {@link ScrollDelegate} that
+ * allows its scroll target to "stick" to the brower in certain regions, as
+ * defined by its "scroll breaks". When the scroll target is "stuck", it appears
+ * to have stopped moving, hence stuck in place,  while the browser scroll bar
+ * continues to move. Only after the browser scrolls past a certain predefined
+ * point will the scroll target "unstick" and start scrolling again.
  */
-export default class StickyScrollDelegate extends ScrollDelegate {
+export class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Specifies if the scroll target position should automatically be updated.
    */
@@ -34,16 +33,16 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * where the target holds its position still until the scroll break length is
    * surprassed.
    *
-   * @param info - Object containing the minimum position and the maximum
-   *               position of the scroll target.
+   * @param info Object containing the minimum position and the maximum
+   *             position of the scroll target.
    */
   private scrollBreakGetter?: (info: { minPos: Point; maxPos: Point }) => ScrollBreakDescriptor
 
   /**
-   * Creates a new `StickyScrollDelegate` instance.
+   * Creates a new {@link StickyScrollDelegate} instance.
    *
-   * @param updateHandler - The handler to invoke upon every update event.
-   * @param descriptors - Map of responsive descriptors.
+   * @param updateHandler The handler to invoke upon every update event.
+   * @param descriptors Map of responsive descriptors.
    */
   constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors: Record<string, number | true | ResponsiveDescriptor> = { [EventType.SCROLL]: true, [EventType.RESIZE]: true }) {
     super(updateHandler, descriptors)
@@ -115,11 +114,11 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
-   * Gets the `Rect` of a child relative to the scroll target.
+   * Gets the {@link Rect} of a child relative to the scroll target.
    *
-   * @param index - Index of the child.
+   * @param index Index of the child.
    *
-   * @returns The relative `Rect`.
+   * @returns The relative {@link Rect}.
    */
   getRelativeRectOfChildAt(index: number): Rect | null {
     const scrollTarget = this.scrollTargetGetter ? this.scrollTargetGetter() : undefined
@@ -130,8 +129,8 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Gets the scroll step relative to a child in the scroll target.
    *
-   * @param index - The index of the child in the scroll target.
-   * @param currStep - The current overall scroll step.
+   * @param index The index of the child in the scroll target.
+   * @param currStep The current overall scroll step.
    *
    * @returns The relative scroll step to the child.
    */
@@ -146,12 +145,12 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   }
 
   /**
-   * Gets the scroll step relative to a Rect in the scroll target.
+   * Gets the scroll step relative to a {@link Rect} in the scroll target.
    *
-   * @param rect - The Rect in the scroll target.
-   * @param currStep - The current overall scroll step.
+   * @param rect The {@link Rect} in the scroll target.
+   * @param currStep The current overall scroll step.
    *
-   * @returns The relative scroll step to the Rect.
+   * @returns The relative scroll step to the {@link Rect}.
    */
   getRelativeStepOfRect(rect: Rect, currStep: Point | PointDescriptor): Point | null {
     const step = currStep instanceof Point ? currStep : new Point(currStep)
@@ -190,8 +189,8 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Gets the relative step of a horizontal scroll break at the provided index.
    *
-   * @param index - Scroll break index.
-   * @param currStep - The current overall scroll step.
+   * @param index Scroll break index.
+   * @param currStep The current overall scroll step.
    *
    * @returns The relative horizontal step.
    */
@@ -229,8 +228,8 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Gets the relative step of a vertical scroll break at the provided index.
    *
-   * @param index - Scroll break index.
-   * @param currStep - The current overall scroll step.
+   * @param index Scroll break index.
+   * @param currStep The current overall scroll step.
    *
    * @returns The relative vertical step.
    */
@@ -313,7 +312,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Updates the size of the scroll container, if provided.
    *
-   * @param size - The size to apply to the scroll container.
+   * @param size The size to apply to the scroll container.
    */
   protected updateScrollContainerSize(size: Size) {
     const scrollContainer = this.scrollContainerGetter ? this.scrollContainerGetter() : undefined
@@ -327,7 +326,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
   /**
    * Updates the scroll target position, if applicable.
    *
-   * @param position - The position to apply to the scroll target.
+   * @param position The position to apply to the scroll target.
    */
   protected updateScrollTargetPosition(position: Point) {
     if (!this.shouldAutoUpdateScrollTarget) return
@@ -342,7 +341,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * Converts a scroll step to a virtual position. A virtual position is a
    * coordinate in the scroll target that includes all scroll breaks.
    *
-   * @param step - Scroll step.
+   * @param step Scroll step.
    *
    * @returns The corresponding virtual position.
    */
@@ -371,7 +370,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * Converts a scroll step to a natural position. A natural position is a
    * coordinate in the scroll target that excludes all scroll breaks.
    *
-   * @param step - Scroll step.
+   * @param step Scroll step.
    *
    * @returns The corresponding natural position.
    */
@@ -386,7 +385,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * Converts a virtual position to a scroll step. A virtual position is a
    * coordinate in the scroll target that includes all scroll breaks.
    *
-   * @param position - Virtual position.
+   * @param position Virtual position.
    *
    * @returns The corresponding scroll step.
    */
@@ -415,7 +414,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * natural position is a coordinate in the scroll target that excludes all
    * scroll breaks.
    *
-   * @param position - Virtual position.
+   * @param position Virtual position.
    *
    * @returns The corresponding natural position.
    */
@@ -520,7 +519,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * Finds the nearest horizontal scroll break defined for this delegate without
    * exceeding the provided virtual x-position.
    *
-   * @param position - The virtual x-position.
+   * @param position The virtual x-position.
    *
    * @returns The nearest vertical scroll break.
    */
@@ -534,7 +533,7 @@ export default class StickyScrollDelegate extends ScrollDelegate {
    * Finds the nearest vertical scroll break defined for this delegate without
    * exceeding the provided virtual y-position.
    *
-   * @param position - The virtual y-position.
+   * @param position The virtual y-position.
    *
    * @returns The nearest vertical scroll break.
    */

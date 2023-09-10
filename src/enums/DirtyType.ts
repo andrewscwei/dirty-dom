@@ -1,8 +1,8 @@
 /**
- * Enum for DOM dirty types. Dirty types help `UpdateDelegate`s identify what
- * needs to be redrawn or updated in the DOM.
+ * Enum for DOM dirty types. Dirty types help {@link UpdateDelegate}s identify
+ * what needs to be redrawn or updated in the DOM.
  */
-enum DirtyType {
+export enum DirtyType {
   /**
    * Indicates that nothing in the UI has changed.
    */
@@ -74,11 +74,11 @@ enum DirtyType {
   ALL = 0xFFFFFFFF,
 }
 
-namespace DirtyType {
+export namespace DirtyType {
   /**
    * Gets the name of the dirty type.
    *
-   * @param dirtyType - Dirty type.
+   * @param dirtyType Dirty type.
    *
    * @returns - Name of the dirty type.
    */
@@ -111,5 +111,3 @@ namespace DirtyType {
     return o
   }
 }
-
-export default DirtyType

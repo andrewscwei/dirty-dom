@@ -1,6 +1,6 @@
 import HTMLPlugin from 'html-webpack-plugin'
 import path from 'path'
-import { Configuration } from 'webpack'
+import type { Configuration } from 'webpack'
 
 const cwd: string = path.join(__dirname, '../')
 const inputDir: string = path.join(cwd, 'src')

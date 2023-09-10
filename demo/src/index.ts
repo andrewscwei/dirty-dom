@@ -7,7 +7,8 @@
 
 import debug from 'debug'
 import { Rect } from 'spase'
-import { DirtyInfo, DirtyType, StickyCrossScrollDelegate, StickyScrollDelegate } from '../../build'
+import type { DirtyInfo } from '../../build'
+import { DirtyType, StickyCrossScrollDelegate, StickyScrollDelegate } from '../../build'
 import packageJson from '../../package.json'
 
 window.localStorage.debug = 'position,size,input'

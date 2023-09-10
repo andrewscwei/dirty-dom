@@ -7,96 +7,35 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-npm-cache-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-npm-cache-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Install Node modules
-        run: npm install
-      - name: Build
-        run: npm run build
-      - name: Persist build dir
-        uses: actions/upload-artifact@v1
-        with:
-          name: build
-          path: build/
-      - name: Test
-        run: npm test
-  deploy:
+    uses: andrewscwei/workflows/.github/workflows/node-build.yml@master
+    with:
+      artifacts-path: build/
+  deploy-npm:
     name: Deploy
+    uses: andrewscwei/workflows/.github/workflows/npm-deploy.yml@master
     needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-npm-cache-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-npm-cache-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Install NPM dependencies
-        run: npm install
-      - name: Restore build dir
-        uses: actions/download-artifact@v1
-        with:
-          name: build
-      - name: Create release
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.github_token }}
-          script: |
-            const tag = process.env.GITHUB_REF.split('/').slice(-1)[0]
-            try {
-              await github.rest.repos.createRelease({
-                draft: false,
-                generate_release_notes: true,
-                name: tag,
-                owner: context.repo.owner,
-                prerelease: false,
-                repo: context.repo.repo,
-                tag_name: tag,
-              })
-            }
-            catch (error) {
-              core.setFailed(error.message)
-            }
-      - name: Deploy to NPM
-        run: .github/workflows/deploy_to_npm.sh
-        env:
-          NPM_AUTH: ${{ secrets.NPM_AUTH }}
-      - name: Deploy to GitHub pages
-        run: .github/workflows/deploy_to_gh_pages.sh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      artifacts-name: ${{ needs.build.outputs.artifacts-name }}
+      artifacts-path: ${{ needs.build.outputs.artifacts-path }}
+      create-release: true
+    secrets:
+      npm-auth-token: ${{ secrets.NPM_AUTH }}
+  deploy-pages:
+    name: Deploy
+    uses: andrewscwei/workflows/.github/workflows/gh-pages-deploy.yml@master
+    needs: [build]
+    with:
+      artifacts-name: ${{ needs.build.outputs.artifacts-name }}
+      artifacts-path: ${{ needs.build.outputs.artifacts-path }}
+      predeploy-command: npm run pages
   notify:
     name: Notify
-    needs: [build, deploy]
+    needs: [build, deploy-npm, deploy-pages]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - uses: andrewscwei/telegram-action@v1.0.0
         with:
-          success: ${{ needs.build.result == 'success' && needs.deploy.result == 'success' }}
+          success: ${{ needs.build.result == 'success' && needs.deploy-npm.result == 'success' && needs.deploy-pages.result == 'success' }}
           bot-token: ${{ secrets.TELEGRAM_DEVOPS_BOT_TOKEN }}
           chat-id: ${{ secrets.TELEGRAM_DEVOPS_CHAT_ID }}

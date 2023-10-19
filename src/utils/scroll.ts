@@ -117,10 +117,10 @@ export function vscrollTo(y: number, target: Window | HTMLElement = window, opti
  */
 export function scrollTo(position: Point, target: Window | HTMLElement = window, { easing = true, ...opts }: ScrollOptions = {}) {
   if (easing) {
-    easeScrollTo(position, target, { easing, ...opts })
+    easeScrollTo(position, target, { ...opts })
   }
   else {
-    linearScrollTo(position, target, { easing, ...opts })
+    linearScrollTo(position, target, { ...opts })
   }
 }
 
@@ -176,7 +176,7 @@ export function cancelAllScrolls() {
  * @param target The target element.
  * @param options See {@link ScrollOptions}.
  */
-function linearScrollTo(position: Point, target: Window | HTMLElement = window, { duration = 400, easing = false, isOverwriteable = true, onProgress, onCancel, onComplete }: ScrollOptions = {}) {
+function linearScrollTo(position: Point, target: Window | HTMLElement = window, { duration = 400, isOverwriteable = true, onProgress, onCancel, onComplete }: Omit<ScrollOptions, 'easing'> = {}) {
   if (getScrollInstanceByTarget(target) && !isOverwriteable) return
 
   cancelScroll(target)
@@ -184,6 +184,12 @@ function linearScrollTo(position: Point, target: Window | HTMLElement = window, 
   const dx = (typeIsWindow(target) ? target.scrollX : target.scrollLeft) - position.x
   const dy = (typeIsWindow(target) ? target.scrollY : target.scrollTop) - position.y
   const t = performance.now()
+
+  if (!typeIsWindow(target)) {
+    target.style.scrollBehavior = 'auto'
+    target.style.scrollSnapStop = 'unset'
+    target.style.scrollSnapType = 'none'
+  }
 
   function step(timestamp: number) {
     if (!getScrollInstanceByTarget(target)) return
@@ -197,15 +203,21 @@ function linearScrollTo(position: Point, target: Window | HTMLElement = window, 
       target.scrollTo(position.x, position.y)
       onComplete?.()
 
+      if (!typeIsWindow(target)) {
+        target.style.scrollBehavior = ''
+        target.style.scrollSnapStop = ''
+        target.style.scrollSnapType = ''
+      }
+
       return
     }
 
     onProgress?.(elapsed / duration)
 
-    setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
+    setScrollInstance({ target, options: { duration, easing: false, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
   }
 
-  setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
+  setScrollInstance({ target, options: { duration, easing: false, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
 }
 
 /**
@@ -215,7 +227,7 @@ function linearScrollTo(position: Point, target: Window | HTMLElement = window, 
  * @param target The target element.
  * @param options See {@link ScrollOptions}.
  */
-function easeScrollTo(position: Point, target: Window | HTMLElement = window, { duration = 400, easing = true, isOverwriteable = true, onProgress, onCancel, onComplete }: ScrollOptions = {}) {
+function easeScrollTo(position: Point, target: Window | HTMLElement = window, { duration = 400, isOverwriteable = true, onProgress, onCancel, onComplete }: Omit<ScrollOptions, 'easing'> = {}) {
   if (getScrollInstanceByTarget(target) && !isOverwriteable) return
 
   cancelScroll(target)
@@ -225,6 +237,12 @@ function easeScrollTo(position: Point, target: Window | HTMLElement = window, { 
 
   let c = 0
   let t = startTime
+
+  if (!typeIsWindow(target)) {
+    target.style.scrollBehavior = 'auto'
+    target.style.scrollSnapStop = 'unset'
+    target.style.scrollSnapType = 'none'
+  }
 
   function step(timestamp: number) {
     if (!getScrollInstanceByTarget(target)) return
@@ -245,6 +263,12 @@ function easeScrollTo(position: Point, target: Window | HTMLElement = window, { 
       target.scrollTo(position.x, position.y)
       onComplete?.()
 
+      if (!typeIsWindow(target)) {
+        target.style.scrollBehavior = ''
+        target.style.scrollSnapStop = ''
+        target.style.scrollSnapType = ''
+      }
+
       return
     }
 
@@ -252,10 +276,10 @@ function easeScrollTo(position: Point, target: Window | HTMLElement = window, { 
 
     onProgress?.(elapsed / duration)
 
-    setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
+    setScrollInstance({ target, options: { duration, easing: true, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
   }
 
-  setScrollInstance({ target, options: { duration, easing, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
+  setScrollInstance({ target, options: { duration, easing: true, onProgress, onCancel, onComplete }, animationFrameRequestId: requestAnimationFrame(step) })
 }
 
 /**

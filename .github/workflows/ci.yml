@@ -13,8 +13,6 @@ jobs:
       - name: Build
         id: build
         uses: andrewscwei/actions/node-build@v1
-        with:
-          artifact-path: build/
   notify:
     name: Notify
     needs: [build]

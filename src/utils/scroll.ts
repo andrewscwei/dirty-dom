@@ -1,6 +1,5 @@
 import { Point, Rect } from 'spase'
-import type { ScrollOptions } from '../types'
-import { typeIsWindow } from '../types'
+import { typeIsWindow, type ScrollOptions } from '../types'
 import { cancelAnimationFrame } from './cancelAnimationFrame'
 import { requestAnimationFrame } from './requestAnimationFrame'
 

@@ -1,8 +1,8 @@
 name: CI
 on:
+  pull_request:
   push:
-    branches: ["**"]
-    tags-ignore: ["v*"]
+    branches-ignore: [master]
 jobs:
   build:
     name: Build
@@ -11,7 +11,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        id: build
         uses: andrewscwei/actions/node-build@v1
   notify:
     name: Notify

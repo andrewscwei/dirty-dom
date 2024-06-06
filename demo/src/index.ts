@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * @file This is a very dumb demo. It needs to be revised, but for now, it's just a quick way during
@@ -19,17 +19,15 @@ versionNode!.innerHTML = `v${packageJson.version}`
 
 const mainNode = document.getElementById('main')
 
-const stickyScrollDelegate = new StickyScrollDelegate(
-  ({ [DirtyType.POSITION]: dirtyPosition, [DirtyType.SIZE]: dirtySize, [DirtyType.INPUT]: dirtyInput }: DirtyInfo) => {
-    if (dirtySize) {
-      // Debug('size')(dirtySize);
-    }
+const stickyScrollDelegate = new StickyScrollDelegate(({ [DirtyType.POSITION]: dirtyPosition, [DirtyType.SIZE]: dirtySize, [DirtyType.INPUT]: dirtyInput }: DirtyInfo) => {
+  if (dirtySize) {
+    // Debug('size')(dirtySize);
+  }
 
-    if (dirtyPosition) {
-      // Debug('position')(dirtyPosition);
-    }
-  },
-)
+  if (dirtyPosition) {
+    // Debug('position')(dirtyPosition);
+  }
+})
 
 stickyScrollDelegate.scrollTarget = () => document.getElementById('main')
 stickyScrollDelegate.scrollContainer = () => document.getElementById('scroller')
@@ -47,18 +45,16 @@ stickyScrollDelegate.scrollBreaks = info => {
   }
 }
 
-const stickyCrossScrollDelegate = new StickyCrossScrollDelegate(
-  ({ [DirtyType.POSITION]: dirtyPosition, [DirtyType.SIZE]: dirtySize, [DirtyType.INPUT]: dirtyInput }: DirtyInfo) => {
-    if (dirtySize) {
-      debug('size')(dirtySize)
-    }
+const stickyCrossScrollDelegate = new StickyCrossScrollDelegate(({ [DirtyType.POSITION]: dirtyPosition, [DirtyType.SIZE]: dirtySize, [DirtyType.INPUT]: dirtyInput }: DirtyInfo) => {
+  if (dirtySize) {
+    debug('size')(dirtySize)
+  }
 
-    if (dirtyPosition) {
-      // Debug('position')((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, dirtyPosition.step));
-      // Debug('position')(dirtyPosition);
-    }
-  },
-)
+  if (dirtyPosition) {
+    // Debug('position')((delegate as StickyScrollDelegate).getRelativeStepOfHorizontalScrollBreakAt(0, dirtyPosition.step));
+    // Debug('position')(dirtyPosition);
+  }
+})
 
 stickyCrossScrollDelegate.scrollTarget = () => document.getElementById('main')
 stickyCrossScrollDelegate.scrollContainer = () => document.getElementById('scroller')

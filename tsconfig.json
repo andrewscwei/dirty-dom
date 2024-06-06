@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "declaration": true,
+    "declaration": false,
     "diagnostics": false,
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
@@ -10,28 +10,31 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "inlineSources": true,
-    "lib": ["es6", "dom"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "lib": [
+      "ES6",
+      "DOM"
+    ],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "noImplicitAny": true,
     "outDir": "./build",
     "pretty": true,
-    "removeComments": false,
+    "removeComments": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "sourceRoot": "/",
     "strict": true,
     "strictNullChecks": true,
-    "target": "es5"
+    "target": "ES5"
   },
-  "include": [
-    "src/**/*.ts"
-  ],
   "exclude": [
-    "**/*.spec.ts",
     "node_modules",
-    "build",
-    "tests"
+    "build"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ]
 }

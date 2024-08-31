@@ -3,8 +3,7 @@
   "version": "8.1.0",
   "description": "Micro library for handling dirty DOM updates",
   "license": "MIT",
-  "main": "build/dirty-dom.umd.cjs",
-  "module": "build/dirty-dom.js",
+  "main": "build/dirty-dom.js",
   "type": "module",
   "types": "build/index.d.ts",
   "scripts": {

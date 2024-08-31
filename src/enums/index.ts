@@ -1,2 +1,2 @@
-export * from './DirtyType'
-export * from './EventType'
+export * from './DirtyType.js'
+export * from './EventType.js'

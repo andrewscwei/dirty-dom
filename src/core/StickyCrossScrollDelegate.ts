@@ -1,5 +1,5 @@
 import { type Point, type Size } from 'spase'
-import { StickyScrollDelegate } from './StickyScrollDelegate'
+import { StickyScrollDelegate } from './StickyScrollDelegate.js'
 
 /**
  * A special {@link StickyScrollDelegate} that displaces the adjecent axis

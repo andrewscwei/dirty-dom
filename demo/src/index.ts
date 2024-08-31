@@ -1,21 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-/**
- * @file This is a very dumb demo. It needs to be revised, but for now, it's just a quick way during
- *       development to test the API.
- */
-
 import debug from 'debug'
+import { DirtyType, StickyCrossScrollDelegate, StickyScrollDelegate, type DirtyInfo } from 'dirty-dom'
 import { Rect } from 'spase'
-import type { DirtyInfo } from '../../build'
-import { DirtyType, StickyCrossScrollDelegate, StickyScrollDelegate } from '../../build'
-import packageJson from '../../package.json'
 
 window.localStorage.debug = 'position,size,input'
 
 const versionNode = document.getElementById('version')
 
-versionNode!.innerHTML = `v${packageJson.version}`
+versionNode!.innerHTML = `v${__VERSION__}`
 
 const mainNode = document.getElementById('main')
 

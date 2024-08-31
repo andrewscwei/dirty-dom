@@ -4,7 +4,7 @@
  *  in the root directory of this source tree.
  */
 
-export * from './core'
-export * from './enums'
-export * from './types'
-export * from './utils/scroll'
+export * from './core/index.js'
+export * from './enums/index.js'
+export * from './types/index.js'
+export * from './utils/scroll.js'

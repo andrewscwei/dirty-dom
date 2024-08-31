@@ -1,4 +1,4 @@
-import { DirtyType, EventType } from '../enums'
+import { DirtyType, EventType } from '../enums/index.js'
 
 /**
  * Transforms a type also include `undefined` and `null`.

@@ -1,8 +1,8 @@
 import { Point, Rect } from 'spase'
-import { DirtyType, EventType } from '../enums'
-import { typeIsWindow, type DirtyInfo, type ResponsiveDescriptor, type ScrollOptions } from '../types'
-import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrollToTop, vscrollTo } from '../utils'
-import { UpdateDelegate } from './UpdateDelegate'
+import { DirtyType, EventType } from '../enums/index.js'
+import { typeIsWindow, type DirtyInfo, type ResponsiveDescriptor, type ScrollOptions } from '../types/index.js'
+import { hscrollTo, scrollTo, scrollToBottom, scrollToLeft, scrollToRight, scrollToTop, vscrollTo } from '../utils/index.js'
+import { UpdateDelegate } from './UpdateDelegate.js'
 
 /**
  * A specific type of {@link UpdateDelegate} that has position and size update

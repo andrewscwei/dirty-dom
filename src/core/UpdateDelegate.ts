@@ -1,7 +1,7 @@
 import { Point, Rect, Size } from 'spase'
-import { DirtyType, EventType } from '../enums'
-import { typeIsDirtyType, typeIsEventType, typeIsWindow, type DirtyInfo, type DirtyTarget, type ResponsiveDescriptor } from '../types'
-import { cancelAnimationFrame, debounce, requestAnimationFrame } from '../utils'
+import { DirtyType, EventType } from '../enums/index.js'
+import { typeIsDirtyType, typeIsEventType, typeIsWindow, type DirtyInfo, type DirtyTarget, type ResponsiveDescriptor } from '../types/index.js'
+import { cancelAnimationFrame, debounce, requestAnimationFrame } from '../utils/index.js'
 
 /**
  * Delegate for managing update calls of an object.

@@ -1,7 +1,7 @@
 import { Point, Rect } from 'spase'
-import { typeIsWindow, type ScrollOptions } from '../types'
-import { cancelAnimationFrame } from './cancelAnimationFrame'
-import { requestAnimationFrame } from './requestAnimationFrame'
+import { typeIsWindow, type ScrollOptions } from '../types/index.js'
+import { cancelAnimationFrame } from './cancelAnimationFrame.js'
+import { requestAnimationFrame } from './requestAnimationFrame.js'
 
 /**
  * A type describing an active scrolling operation.

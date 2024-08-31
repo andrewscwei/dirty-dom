@@ -1,8 +1,8 @@
 import { Point, Rect, Size, type PointDescriptor } from 'spase'
-import { DirtyType, EventType } from '../enums'
-import { type DirtyInfo, type ResponsiveDescriptor, type ScrollBreak, type ScrollBreakDescriptor } from '../types'
-import { ScrollDelegate } from './ScrollDelegate'
-import { type UpdateDelegate } from './UpdateDelegate'
+import { DirtyType, EventType } from '../enums/index.js'
+import { type DirtyInfo, type ResponsiveDescriptor, type ScrollBreak, type ScrollBreakDescriptor } from '../types/index.js'
+import { ScrollDelegate } from './ScrollDelegate.js'
+import { type UpdateDelegate } from './UpdateDelegate.js'
 
 /**
  * A {@link StickyScrollDelegate} is subclass of {@link ScrollDelegate} that

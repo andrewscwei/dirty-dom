@@ -46,9 +46,9 @@ export class UpdateDelegate {
 
   protected dirtyInfo: DirtyInfo = {}
 
-  protected eventTargetDict: { [key in EventType]?: DirtyTarget } = {}
+  protected eventTargetDict: Partial<Record<EventType, DirtyTarget>> = {}
 
-  protected eventHandlerDict: { [key in EventType]?: EventListener | number } = {}
+  protected eventHandlerDict: Partial<Record<EventType, EventListener | number>> = {}
 
   /**
    * Handler invoked whenever the {@link UpdateDelegate} emits an update event.
@@ -69,9 +69,9 @@ export class UpdateDelegate {
    */
   private dirtyTable = 0
 
-  private responsivenessTable?: { [key in EventType]?: number | true | { target?: DirtyTarget; refreshRate?: number } }
+  private responsivenessTable?: Partial<Record<EventType, number | true | { target?: DirtyTarget; refreshRate?: number }>>
 
-  private eventPropDict: { [key in EventType]?: any } = {}
+  private eventPropDict: Partial<Record<EventType, any>> = {}
 
   /**
    * Creates a new {@link UpdateDelegate} instance.
@@ -79,7 +79,7 @@ export class UpdateDelegate {
    * @param updateHandler The handler to invoke upon every update event.
    * @param descriptors Map of responsive descriptors.
    */
-  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors?: { [key in EventType]?: number | true | { target?: DirtyTarget; refreshRate?: number } }) {
+  constructor(updateHandler: (info: DirtyInfo, delegate: UpdateDelegate) => void, descriptors?: Partial<Record<EventType, number | true | { target?: DirtyTarget; refreshRate?: number }>>) {
     this.updateHandler = updateHandler
     this.responsivenessTable = descriptors
   }

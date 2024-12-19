@@ -27,6 +27,6 @@ export function debounce(fn: (...args: any[]) => void, delay = 0, leading = fals
     window.clearTimeout(timeout)
     timeout = window.setTimeout(later, delay)
 
-    if (shouldCallNow) fn.apply(context, args as any)
+    if (shouldCallNow) fn(...args)
   }
 }

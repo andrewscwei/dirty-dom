@@ -15,9 +15,7 @@ export type DirtyTarget = Nullable<Window | HTMLElement | (() => Window | HTMLEl
  * A type that describes what information was dirty, as categorized (and keyed)
  * by affected {@link DirtyType}'s.
  */
-export type DirtyInfo = {
-  [key in DirtyType]?: Nullable<Record<string, any>>;
-}
+export type DirtyInfo = Partial<Record<DirtyType, Nullable<Record<string, any>>>>
 
 /**
  * An object that describes all the x and y {@link ScrollBreak}'s for a

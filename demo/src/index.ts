@@ -6,7 +6,7 @@ window.localStorage.debug = 'position,size,input'
 
 const versionNode = document.getElementById('version')
 
-versionNode!.innerHTML = `v${__VERSION__}`
+versionNode!.innerHTML = `v${import.meta.env.VERSION}`
 
 const mainNode = document.getElementById('main')
 

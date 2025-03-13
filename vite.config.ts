@@ -6,9 +6,12 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'spase',
+      name: 'dirty-dom',
     },
     outDir: resolve(__dirname, 'build'),
+    rollupOptions: {
+      treeshake: 'smallest',
+    },
     target: 'esnext',
   },
   plugins: [
